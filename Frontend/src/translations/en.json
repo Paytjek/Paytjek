@@ -1,0 +1,202 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "upload": "Upload",
+    "analysis": "Analysis",
+    "settings": "Settings",
+    "notFound": "Page not found",
+    "goHome": "Go back home",
+    "language": "Language",
+    "getStarted": "Get Started",
+    "tryDemo": "Try Dashboard Demo",
+    "uploadPayslip": "Upload Your Payslip",
+    "export": "Export",
+    "currentPayslip": "Current Payslip",
+    "history": "History",
+    "historicalData": "Historical data will appear here"
+  },
+  "landing": {
+    "title": "Welcome to PayTjek",
+    "description": "Analyze your paychecks and gain valuable insights",
+    "hero": {
+      "title": "Make Sense of Your Payslip in Seconds",
+      "description": "Upload your payslip and instantly understand your taxes, pension, vacation pay, and more with our intuitive financial dashboard."
+    },
+    "features": {
+      "title": "Powerful Financial Insights",
+      "description": "Our plugin-based platform helps you visualize and understand every aspect of your payslip.",
+      "items": {
+        "tax": {
+          "title": "Tax Analysis",
+          "description": "Visualize and understand your tax deductions with clear breakdowns and insights."
+        },
+        "pension": {
+          "title": "Pension Overview",
+          "description": "Track your pension contributions and project future retirement savings."
+        },
+        "vacation": {
+          "title": "Vacation Pay",
+          "description": "Monitor your vacation pay accrual and usage throughout the year."
+        },
+        "timeOff": {
+          "title": "Time Off Monitor",
+          "description": "Keep track of sick days, overtime, and time-off balances in one place."
+        },
+        "hours": {
+          "title": "Working Hours",
+          "description": "Analyze working hours patterns and productivity across pay periods."
+        }
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "description": "Get started in minutes with our simple three-step process.",
+      "steps": {
+        "upload": {
+          "title": "Upload Your Payslip",
+          "description": "Simply upload your payslip in PDF or image format and our system will do the rest."
+        },
+        "analysis": {
+          "title": "Smart Analysis",
+          "description": "Our AI-powered system extracts and analyzes key financial information from your document."
+        },
+        "insights": {
+          "title": "Get Visual Insights",
+          "description": "Access beautiful charts and breakdowns of your financial data in a user-friendly dashboard."
+        }
+      }
+    },
+    "footer": {
+      "tagline": "Making personal finance simple through intelligent payslip analysis.",
+      "product": "Product",
+      "company": "Company",
+      "about": "About",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "contact": "Contact",
+      "copyright": "© 2025 PayTjek. All rights reserved.",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "recentAnalyses": "Recent Analyses",
+    "noAnalyses": "No analyses yet",
+    "viewData": "View and analyze your latest payslip data",
+    "grossSalary": {
+      "title": "Gross Salary",
+      "increase": "↑ {{percent}}% from last month"
+    },
+    "netSalary": {
+      "title": "Net Salary",
+      "description": "After all deductions"
+    },
+    "deductions": {
+      "title": "Total Deductions",
+      "description": "{{percent}}% of gross salary"
+    }
+  },
+  "upload": {
+    "title": "Upload Payslip",
+    "description": "Upload your payslip to analyze your financial data",
+    "card": {
+      "title": "Payslip Upload",
+      "description": "Upload a PDF or image file of your payslip for analysis"
+    },
+    "supportedFiles": {
+      "title": "Supported File Types",
+      "description": "PDF, JPEG, PNG"
+    },
+    "maxSize": {
+      "title": "Maximum File Size",
+      "description": "10MB per file"
+    },
+    "privacy": {
+      "title": "Data Privacy",
+      "description": "All uploads are encrypted and securely processed"
+    },
+    "fileUploader": {
+      "dragDrop": "Drag and drop your payslip here",
+      "or": "or",
+      "browse": "Browse files",
+      "invalidType": {
+        "title": "Invalid file type",
+        "description": "Only PDF, JPEG, and PNG files are accepted."
+      },
+      "success": {
+        "title": "Upload successful",
+        "description": "Your payslip has been uploaded and analyzed."
+      }
+    }
+  },
+  "analysis": {
+    "title": "Analysis",
+    "description": "In-depth analysis of your payslip components",
+    "loading": "Analyzing your paycheck...",
+    "summary": "Summary",
+    "details": "Details"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your account and plugin preferences",
+    "profile": "Profile",
+    "plugins": "Plugins",
+    "profileInfo": "Profile Information",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications"
+  },
+  "widgets": {
+    "tax": {
+      "title": "Tax Breakdown",
+      "description": "Your monthly tax contributions",
+      "total": "Total Taxes",
+      "amount": "Amount",
+      "types": {
+        "incomeTax": "Income Tax",
+        "socialSecurity": "Social Security",
+        "medicare": "Medicare",
+        "otherTaxes": "Other Taxes"
+      }
+    },
+    "pension": {
+      "title": "Pension Overview",
+      "description": "Track your pension contributions and growth",
+      "ytd": "YTD Contributions",
+      "employerMatch": "Employer Match",
+      "yourContribution": "Your Contribution",
+      "employerContribution": "Employer Contribution"
+    },
+    "vacation": {
+      "title": "Vacation Pay",
+      "description": "Accrued vacation allowance",
+      "total": "Total",
+      "used": "Used",
+      "accruedValue": "Accrued Value",
+      "daysLeft": "days left"
+    },
+    "timeOff": {
+      "title": "Time Off Monitor",
+      "description": "Sick days and overtime",
+      "sickDays": "Sick Days",
+      "overtime": "Overtime",
+      "days": "days",
+      "hours": "hours"
+    },
+    "workingHours": {
+      "title": "Working Hours",
+      "description": "Hours analysis",
+      "totalHours": "Total Hours",
+      "dailyAverage": "Daily Average",
+      "workingTime": "Working Time"
+    },
+    "salary": {
+      "title": "Salary History",
+      "description": "View your salary trends over time",
+      "current": "Current Salary",
+      "change": "Change"
+    }
+  }
+} 

@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Background: #F7F9FC - light blue-gray */
+    --background: 220 33% 98%;
+    --foreground: 222 84% 4.9%;
+
+    /* Card Background: #FFFFFF - white */
+    --card: 0 0% 100%;
+    --card-foreground: 222 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 4.9%;
+
+    /* Primary: #3366FF - strong blue */
+    --primary: 225 100% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 225 100% 60% / 0.1;
+
+    /* Secondary: #00B8D9 - teal */
+    --secondary: 190 100% 42.5%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 33% 96.1%;
+    --muted-foreground: 220 14% 46.9%;
+
+    /* Success: #36B37E - green */
+    --success: 155 52% 46%;
+    --success-foreground: 0 0% 100%;
+
+    /* Warning: #FFAB00 - amber */
+    --warning: 40 100% 50%;
+    --warning-foreground: 0 0% 0%;
+
+    /* Error: #FF5630 - red */
+    --destructive: 11 100% 59%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 225 100% 60%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar inherits from main colors */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 84% 4.9%;
+    --sidebar-primary: 225 100% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 33% 96.1%;
+    --sidebar-accent-foreground: 222 84% 4.9%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 225 100% 60%;
+  }
+
+  .dark {
+    /* Keep dark mode with the same hues but adjusted lightness */
+    --background: 222 47% 11%;
+    --foreground: 220 33% 98%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 220 33% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 220 33% 98%;
+
+    --primary: 225 100% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 225 100% 60% / 0.15;
+
+    --secondary: 190 100% 42.5%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 33% 20%;
+    --muted-foreground: 220 14% 65.1%;
+
+    --success: 155 52% 46%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 40 100% 50%;
+    --warning-foreground: 0 0% 0%;
+
+    --destructive: 11 100% 59%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 33% 20%;
+    --input: 220 33% 20%;
+    --ring: 225 100% 60%;
+    
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 220 33% 98%;
+    --sidebar-primary: 225 100% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 33% 20%;
+    --sidebar-accent-foreground: 220 33% 98%;
+    --sidebar-border: 220 33% 20%;
+    --sidebar-ring: 225 100% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .gradient-heading {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  }
+  
+  .card-shadow {
+    @apply shadow-lg shadow-primary/5;
+  }
+  
+  .feature-icon {
+    @apply p-2 rounded-lg bg-gradient-to-r from-primary to-secondary text-white;
+  }
+  
+  .dashboard-card {
+    @apply bg-card rounded-2xl p-6 card-shadow transition-all hover:shadow-xl;
+  }
+}

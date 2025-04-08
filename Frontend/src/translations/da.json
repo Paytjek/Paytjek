@@ -1,0 +1,202 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "upload": "Upload",
+    "analysis": "Analyse",
+    "settings": "Indstillinger",
+    "notFound": "Siden blev ikke fundet",
+    "goHome": "Gå tilbage til startsiden",
+    "language": "Sprog",
+    "getStarted": "Kom i gang",
+    "tryDemo": "Prøv Dashboard Demo",
+    "uploadPayslip": "Upload din lønseddel",
+    "export": "Eksporter",
+    "currentPayslip": "Nuværende lønseddel",
+    "history": "Historik",
+    "historicalData": "Historiske data vil vises her"
+  },
+  "landing": {
+    "title": "Velkommen til PayTjek",
+    "description": "Analyser dine lønsedler og få værdifulde indsigter",
+    "hero": {
+      "title": "Forstå din lønseddel på få sekunder",
+      "description": "Upload din lønseddel og få øjeblikkelig indsigt i dine skatter, pension, feriepenge og mere med vores intuitive finansielle dashboard."
+    },
+    "features": {
+      "title": "Kraftfulde finansielle indsigter",
+      "description": "Vores plugin-baserede platform hjælper dig med at visualisere og forstå alle aspekter af din lønseddel.",
+      "items": {
+        "tax": {
+          "title": "Skatteanalyse",
+          "description": "Visualiser og forstå dine skattefradrag med tydelige opdelinger og indsigter."
+        },
+        "pension": {
+          "title": "Pensionsoversigt",
+          "description": "Følg dine pensionsbidrag og projektér fremtidige pensionsopsparinger."
+        },
+        "vacation": {
+          "title": "Feriepenge",
+          "description": "Overvåg dine feriepenge og deres anvendelse gennem året."
+        },
+        "timeOff": {
+          "title": "Fraværsmonitor",
+          "description": "Hold styr på sygedage, overarbejde og feriedage på ét sted."
+        },
+        "hours": {
+          "title": "Arbejdstimer",
+          "description": "Analyser arbejdstidsmønstre og produktivitet på tværs af lønningsperioder."
+        }
+      }
+    },
+    "howItWorks": {
+      "title": "Sådan virker det",
+      "description": "Kom i gang på få minutter med vores enkle tre-trins proces.",
+      "steps": {
+        "upload": {
+          "title": "Upload din lønseddel",
+          "description": "Upload blot din lønseddel i PDF eller billedformat, så klarer systemet resten."
+        },
+        "analysis": {
+          "title": "Smart analyse",
+          "description": "Vores AI-drevne system udtrækker og analyserer vigtig finansiel information fra dit dokument."
+        },
+        "insights": {
+          "title": "Få visuelle indsigter",
+          "description": "Få adgang til smukke diagrammer og opdelinger af dine finansielle data i et brugervenligt dashboard."
+        }
+      }
+    },
+    "footer": {
+      "tagline": "Gør personlig økonomi enkel gennem intelligent lønseddelanalyse.",
+      "product": "Produkt",
+      "company": "Virksomhed",
+      "about": "Om os",
+      "privacy": "Privatliv",
+      "terms": "Vilkår",
+      "contact": "Kontakt",
+      "copyright": "© 2025 PayTjek. Alle rettigheder forbeholdes.",
+      "privacyPolicy": "Privatlivspolitik",
+      "termsOfService": "Servicevilkår"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Velkommen tilbage",
+    "recentAnalyses": "Seneste analyser",
+    "noAnalyses": "Ingen analyser endnu",
+    "viewData": "Se og analyser dine seneste lønseddeldata",
+    "grossSalary": {
+      "title": "Bruttoløn",
+      "increase": "↑ {{percent}}% fra sidste måned"
+    },
+    "netSalary": {
+      "title": "Nettoløn",
+      "description": "Efter alle fradrag"
+    },
+    "deductions": {
+      "title": "Samlede fradrag",
+      "description": "{{percent}}% af bruttoløn"
+    }
+  },
+  "upload": {
+    "title": "Upload lønseddel",
+    "description": "Upload din lønseddel for at analysere dine finansielle data",
+    "card": {
+      "title": "Lønseddel upload",
+      "description": "Upload en PDF eller billedfil af din lønseddel til analyse"
+    },
+    "supportedFiles": {
+      "title": "Understøttede filtyper",
+      "description": "PDF, JPEG, PNG"
+    },
+    "maxSize": {
+      "title": "Maksimal filstørrelse",
+      "description": "10MB per fil"
+    },
+    "privacy": {
+      "title": "Databeskyttelse",
+      "description": "Alle uploads er krypteret og behandlet sikkert"
+    },
+    "fileUploader": {
+      "dragDrop": "Træk og slip din lønseddel her",
+      "or": "eller",
+      "browse": "Gennemse filer",
+      "invalidType": {
+        "title": "Ugyldig filtype",
+        "description": "Kun PDF, JPEG og PNG filer accepteres."
+      },
+      "success": {
+        "title": "Upload gennemført",
+        "description": "Din lønseddel er blevet uploadet og analyseret."
+      }
+    }
+  },
+  "analysis": {
+    "title": "Analyse",
+    "description": "Detaljeret analyse af dine lønseddelkomponenter",
+    "loading": "Analyserer din lønseddel...",
+    "summary": "Oversigt",
+    "details": "Detaljer"
+  },
+  "settings": {
+    "title": "Indstillinger",
+    "description": "Administrer din konto og plugin-indstillinger",
+    "profile": "Profil",
+    "plugins": "Plugins",
+    "profileInfo": "Profilinformation",
+    "language": "Sprog",
+    "theme": "Tema",
+    "notifications": "Notifikationer"
+  },
+  "widgets": {
+    "tax": {
+      "title": "Skatteopdeling",
+      "description": "Dine månedlige skattebidrag",
+      "total": "Samlede skatter",
+      "amount": "Beløb",
+      "types": {
+        "incomeTax": "Indkomstskat",
+        "socialSecurity": "Social sikring",
+        "medicare": "Sundhedsforsikring",
+        "otherTaxes": "Andre skatter"
+      }
+    },
+    "pension": {
+      "title": "Pensionsoversigt",
+      "description": "Følg dine pensionsbidrag og vækst",
+      "ytd": "ÅTD bidrag",
+      "employerMatch": "Arbejdsgiver match",
+      "yourContribution": "Dit bidrag",
+      "employerContribution": "Arbejdsgiver bidrag"
+    },
+    "vacation": {
+      "title": "Feriepenge",
+      "description": "Optjente feriepenge",
+      "total": "I alt",
+      "used": "Brugt",
+      "accruedValue": "Optjent værdi",
+      "daysLeft": "dage tilbage"
+    },
+    "timeOff": {
+      "title": "Fraværsmonitor",
+      "description": "Sygedage og overarbejde",
+      "sickDays": "Sygedage",
+      "overtime": "Overarbejde",
+      "days": "dage",
+      "hours": "timer"
+    },
+    "workingHours": {
+      "title": "Arbejdstimer",
+      "description": "Timer analyse",
+      "totalHours": "Samlede timer",
+      "dailyAverage": "Dagligt gennemsnit",
+      "workingTime": "Arbejdstid"
+    },
+    "salary": {
+      "title": "Lønhistorik",
+      "description": "Se din lønudvikling over tid",
+      "current": "Nuværende løn",
+      "change": "Ændring"
+    }
+  }
+} 
