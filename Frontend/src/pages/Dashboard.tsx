@@ -41,7 +41,7 @@ const Dashboard: React.FC = () => {
         <Card className="dashboard-card">
           <CardHeader className="pb-2">
             <CardDescription>{t('dashboard.grossSalary.title')}</CardDescription>
-            <CardTitle className="text-2xl">$5,000.00</CardTitle>
+            <CardTitle className="text-2xl">Kr. 5.000,00</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-green-600 flex items-center">
@@ -53,7 +53,7 @@ const Dashboard: React.FC = () => {
         <Card className="dashboard-card">
           <CardHeader className="pb-2">
             <CardDescription>{t('dashboard.netSalary.title')}</CardDescription>
-            <CardTitle className="text-2xl">$3,730.00</CardTitle>
+            <CardTitle className="text-2xl">Kr. 3.730,00</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
@@ -65,7 +65,7 @@ const Dashboard: React.FC = () => {
         <Card className="dashboard-card">
           <CardHeader className="pb-2">
             <CardDescription>{t('dashboard.deductions.title')}</CardDescription>
-            <CardTitle className="text-2xl">$1,270.00</CardTitle>
+            <CardTitle className="text-2xl">Kr. 1.270,00</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">

@@ -45,7 +45,7 @@ const VacationPayWidget: React.FC = () => {
         
         <div className="text-center">
           <div className="text-gray-500">{t('widgets.vacation.accruedValue')}</div>
-          <div className="font-medium">$2,160</div>
+          <div className="font-medium">Kr. 2.160</div>
         </div>
       </div>
     </div>

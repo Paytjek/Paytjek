@@ -35,7 +35,7 @@ const TaxWidget: React.FC = () => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => [`$${value}`, t('widgets.tax.amount')]} />
+              <Tooltip formatter={(value) => [`Kr. ${value}`, t('widgets.tax.amount')]} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -49,7 +49,7 @@ const TaxWidget: React.FC = () => {
                   <span className="text-sm">{t(`widgets.tax.types.${item.name}`)}</span>
                 </div>
                 <div className="flex gap-2">
-                  <span className="text-sm font-medium">${item.value}</span>
+                  <span className="text-sm font-medium">Kr. {item.value}</span>
                   <span className="text-xs text-gray-500">({((item.value / totalTax) * 100).toFixed(0)}%)</span>
                 </div>
               </div>
@@ -57,7 +57,7 @@ const TaxWidget: React.FC = () => {
             
             <div className="flex items-center justify-between pt-2 border-t">
               <span className="font-medium">{t('widgets.tax.total')}</span>
-              <span className="font-medium">${totalTax}</span>
+              <span className="font-medium">Kr. {totalTax}</span>
             </div>
           </div>
         </div>
