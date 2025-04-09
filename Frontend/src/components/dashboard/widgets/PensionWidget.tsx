@@ -35,7 +35,7 @@ const PensionWidget: React.FC = () => {
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm text-gray-500">{t('widgets.pension.ytd')}</p>
-            <p className="text-2xl font-semibold">$3,000</p>
+            <p className="text-2xl font-semibold">Kr. 3.000</p>
           </div>
           <div className="text-right">
             <p className="text-sm text-gray-500">{t('widgets.pension.employerMatch')}</p>

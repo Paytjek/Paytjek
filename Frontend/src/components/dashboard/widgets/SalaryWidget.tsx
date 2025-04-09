@@ -25,7 +25,7 @@ const SalaryWidget: React.FC = () => {
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm text-gray-500">{t('widgets.salary.current')}</p>
-            <p className="text-2xl font-semibold">$5,000</p>
+            <p className="text-2xl font-semibold">Kr. 5.000</p>
           </div>
           <div className="text-right">
             <p className="text-sm text-gray-500">{t('widgets.salary.change')}</p>
@@ -43,7 +43,7 @@ const SalaryWidget: React.FC = () => {
               <XAxis dataKey="month" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} width={30} />
               <Tooltip
-                formatter={(value) => [`$${value}`, '']}
+                formatter={(value) => [`Kr. ${value}`, '']}
                 labelStyle={{ color: "#1F2937" }}
                 contentStyle={{ backgroundColor: "white", borderRadius: "8px", border: "none", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
               />
