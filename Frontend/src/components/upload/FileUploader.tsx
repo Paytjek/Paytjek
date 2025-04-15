@@ -7,6 +7,8 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 
+const API_URL = "http://localhost:8000"; // Ændr til den faktiske backend-URL
+
 const FileUploader: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -66,30 +68,60 @@ const FileUploader: React.FC = () => {
     setFiles(newFiles);
   };
 
-  const uploadFiles = () => {
+  const uploadFiles = async () => {
     if (files.length === 0) return;
     
     setUploading(true);
+    setProgress(10);
     
-    // Simulate upload progress
-    let progValue = 0;
-    const interval = setInterval(() => {
-      progValue += 10;
-      setProgress(progValue);
+    try {
+      // Upload filen til vores backend-API
+      const formData = new FormData();
+      formData.append("file", files[0]);
       
-      if (progValue >= 100) {
-        clearInterval(interval);
-        setUploading(false);
-        toast({
-          title: t('upload.fileUploader.success.title'),
-          description: t('upload.fileUploader.success.description'),
-          variant: "default",
-        });
-        
-        // Navigate to dashboard after successful upload
-        setTimeout(() => navigate("/dashboard"), 1000);
+      setProgress(30);
+      
+      const response = await fetch(`${API_URL}/api/v1/upload`, {
+        method: "POST",
+        body: formData,
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+      
+      setProgress(70);
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
       }
-    }, 300);
+      
+      const validationResult = await response.json();
+      
+      // Gem resultatet i localstorage til dashboardet
+      localStorage.setItem("validationResult", JSON.stringify(validationResult));
+      
+      setProgress(100);
+      
+      toast({
+        title: t('upload.fileUploader.success.title'),
+        description: t('upload.fileUploader.success.description'),
+        variant: "default",
+      });
+      
+      // Naviger til dashboard efter vellykket upload
+      setTimeout(() => navigate("/dashboard"), 1000);
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload fejlede",
+        description: String(error),
+        variant: "destructive",
+      });
+      setProgress(0);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
