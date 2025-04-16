@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Calendar, Download, AlertTriangle, CheckCircle } from "lucide-react";
 import WidgetGrid from "@/components/dashboard/WidgetGrid";
+import CalendarWidget from "@/components/dashboard/widgets/CalendarWidget";
 import { useNavigate } from "react-router-dom";
 
 interface ValidationIssue {
@@ -164,16 +165,24 @@ const Dashboard: React.FC = () => {
           </div>
         </>
       ) : (
-        <Card className="dashboard-card p-8 text-center">
-          <CardContent>
-            <p className="text-muted-foreground mb-4">
-              Ingen lønseddel er uploadet endnu. Upload en lønseddel for at se analysen.
-            </p>
-            <Button onClick={() => navigate('/upload')}>
-              {t('common.uploadPayslip')}
-            </Button>
-          </CardContent>
-        </Card>
+        <>
+          <Card className="dashboard-card p-8 text-center">
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Ingen lønseddel er uploadet endnu. Upload en lønseddel for at se analysen.
+              </p>
+              <Button onClick={() => navigate('/upload')}>
+                {t('common.uploadPayslip')}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="dashboard-card">
+            <CardContent>
+              <CalendarWidget />
+            </CardContent>
+          </Card>
+        </>
       )}
       
       <Tabs defaultValue="payslip">
