@@ -7,14 +7,20 @@ services:
       - "8000:8000"
     environment:
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - CORS_ORIGINS=http://localhost:8080,http://frontend:80
     volumes:
-      - ./backend:/app
+      - ./backend/app:/app/app
+      - ./backend/uploads:/app/uploads
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build: ./Frontend
     ports:
-      - "8080:8080"
+      - "8080:80"
     depends_on:
       - backend
+    environment:
+      - VITE_API_URL=http://localhost:8000
     restart: unless-stopped
+    volumes:
+      - ./Frontend/nginx.conf:/etc/nginx/conf.d/default.conf
