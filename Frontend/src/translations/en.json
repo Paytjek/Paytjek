@@ -98,6 +98,14 @@
       "description": "{{percent}}% of gross salary"
     }
   },
+  "schedule": {
+    "title": "Work Schedule",
+    "description": "Manage and plan your shifts",
+    "overview": {
+      "title": "Shift Overview",
+      "description": "View and manage your upcoming shifts. Click on a date or time slot to add a new shift."
+    }
+  },
   "upload": {
     "title": "Upload Payslip",
     "description": "Upload your payslip to analyze your financial data",
@@ -143,10 +151,15 @@
     "description": "Manage your account and plugin preferences",
     "profile": "Profile",
     "plugins": "Plugins",
-    "profileInfo": "Profile Information",
+    "profileInfo": "Select Profile",
     "language": "Language",
     "theme": "Theme",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "profileUpdated": {
+      "title": "Profile updated",
+      "description": "Your profile settings have been saved."
+    },
+    "saveChanges": "Save Changes"
   },
   "widgets": {
     "tax": {
