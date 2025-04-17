@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,29 +8,34 @@ import Dashboard from "./pages/Dashboard";
 import Upload from "./pages/Upload";
 import Analysis from "./pages/Analysis";
 import Settings from "./pages/Settings";
+import Schedule from "./pages/Schedule";
 import MainLayout from "./components/layout/MainLayout";
 import NotFound from "./pages/NotFound";
+import { ProfileProvider } from "./contexts/ProfileContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route element={<MainLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/upload" element={<Upload />} />
-            <Route path="/analysis" element={<Analysis />} />
-            <Route path="/settings" element={<Settings />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ProfileProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route element={<MainLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/upload" element={<Upload />} />
+              <Route path="/schedule" element={<Schedule />} />
+              <Route path="/analysis" element={<Analysis />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ProfileProvider>
   </QueryClientProvider>
 );
 
