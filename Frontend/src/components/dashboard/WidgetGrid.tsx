@@ -5,7 +5,6 @@ import PensionWidget from "./widgets/PensionWidget";
 import VacationPayWidget from "./widgets/VacationPayWidget";
 import TimeOffWidget from "./widgets/TimeOffWidget";
 import WorkingHoursWidget from "./widgets/WorkingHoursWidget";
-import CalendarWidget from "./widgets/CalendarWidget";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -62,16 +61,6 @@ const WidgetGrid: React.FC = () => {
         </CardHeader>
         <CardContent>
           <WorkingHoursWidget />
-        </CardContent>
-      </Card>
-
-      <Card className="lg:col-span-3 dashboard-card">
-        <CardHeader>
-          <CardTitle>Vagtplan</CardTitle>
-          <CardDescription>Planlæg og administrer dine vagter</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CalendarWidget />
         </CardContent>
       </Card>
     </div>

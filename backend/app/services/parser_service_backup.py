@@ -1,8 +1,7 @@
 import os
 from typing import Dict, Any
 import json
-from mistralai.client import MistralClient
-from mistralai.models.chat_completion import ChatMessage
+from mistralai import Mistral
 from app.config import settings
 import logging
 
@@ -64,15 +63,15 @@ Returner kun JSON-objektet uden forklarende tekst.
 """
             
             messages = [
-                ChatMessage(role="user", content=prompt)
+                {"role": "user", "content": prompt}
             ]
             
             logger.info("Sending request to Mistral API...")
-            client = MistralClient(api_key=self.api_key)
-            chat_response = client.chat(
-                model=self.model,
-                messages=messages,
-            )
+            with Mistral(api_key=self.api_key) as client: 
+                chat_response = client.chat.complete(
+                    model=self.model,
+                    messages=messages,
+                )
             logger.info("Received response from Mistral API.")
             
             response_content = chat_response.choices[0].message.content
@@ -102,4 +101,4 @@ Returner kun JSON-objektet uden forklarende tekst.
             raise Exception(f"Parsing-fejl: Kunne ikke parse JSON fra LLM - {json_err}") from json_err
         except Exception as e:
             logger.error(f"An unexpected error occurred in parse_payslip: {e}", exc_info=True)
-            raise Exception(f"Parsing-fejl: {str(e)}") 
+            raise Exception(f"Parsing-fejl: {str(e)}")

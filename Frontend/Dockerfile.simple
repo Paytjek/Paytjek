@@ -1,0 +1,13 @@
+# En simplere Dockerfile, der kun bruger nginx uden multi-stage build
+FROM nginx:alpine
+
+# Vi kopierer ikke dist-mappen, da vi monterer den som et volumen i docker-compose.yml
+
+# Kopier nginx-konfigurationen
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Eksposer port 80
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"] 

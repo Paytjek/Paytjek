@@ -98,6 +98,14 @@
       "description": "{{percent}}% af bruttoløn"
     }
   },
+  "schedule": {
+    "title": "Vagtplan",
+    "description": "Administrer og planlæg dine vagter",
+    "overview": {
+      "title": "Vagtoversigt",
+      "description": "Se og administrer dine kommende vagter. Klik på en dato eller et tidsinterval for at tilføje en ny vagt."
+    }
+  },
   "upload": {
     "title": "Upload lønseddel",
     "description": "Upload din lønseddel for at analysere dine finansielle data",
@@ -143,10 +151,15 @@
     "description": "Administrer din konto og plugin-indstillinger",
     "profile": "Profil",
     "plugins": "Plugins",
-    "profileInfo": "Profilinformation",
+    "profileInfo": "Vælg profil",
     "language": "Sprog",
     "theme": "Tema",
-    "notifications": "Notifikationer"
+    "notifications": "Notifikationer",
+    "profileUpdated": {
+      "title": "Profil opdateret",
+      "description": "Din profilindstilling er blevet gemt."
+    },
+    "saveChanges": "Gem ændringer"
   },
   "widgets": {
     "tax": {

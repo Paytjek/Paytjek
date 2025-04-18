@@ -2,11 +2,12 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Upload, Settings, PieChart, LogOut } from "lucide-react";
+import { LayoutDashboard, Upload, Settings, PieChart, LogOut, Calendar } from "lucide-react";
 
 const navItems = [
   { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { name: "Upload", path: "/upload", icon: Upload },
+  { name: "Vagtplan", path: "/schedule", icon: Calendar },
   { name: "Analysis", path: "/analysis", icon: PieChart },
   { name: "Settings", path: "/settings", icon: Settings },
 ];

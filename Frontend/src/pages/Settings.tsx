@@ -19,8 +19,8 @@ const Settings: React.FC = () => {
       
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="profile">{t('settings.profile')}</TabsTrigger>
-          <TabsTrigger value="plugins">{t('settings.plugins')}</TabsTrigger>
+          <TabsTrigger value="profile" className="font-medium">{t('settings.profile')}</TabsTrigger>
+          <TabsTrigger value="plugins" className="font-medium">{t('settings.plugins')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile" className="mt-6">

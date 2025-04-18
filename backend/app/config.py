@@ -14,8 +14,8 @@ class Settings:
     MISTRAL_API_KEY: str = os.getenv("MISTRAL_API_KEY", "")
     
     # CORS
-    # Default to allow the Vite dev server port
-    CORS_ORIGINS: list = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+    # Default to allow both development and docker container access
+    CORS_ORIGINS: list = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:8080,http://localhost:8081,http://frontend:80").split(",")
     
     # Dokumenthåndtering
     UPLOAD_FOLDER: str = "temp_uploads"

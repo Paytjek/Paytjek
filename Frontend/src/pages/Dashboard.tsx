@@ -11,8 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Calendar, Download, AlertTriangle, CheckCircle } from "lucide-react";
 import WidgetGrid from "@/components/dashboard/WidgetGrid";
-import CalendarWidget from "@/components/dashboard/widgets/CalendarWidget";
 import { useNavigate } from "react-router-dom";
+import { useProfile } from "@/contexts/ProfileContext";
 
 interface ValidationIssue {
   field: string;
@@ -30,6 +30,7 @@ interface ValidationResult {
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { selectedProfile } = useProfile();
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   
   useEffect(() => {
@@ -45,13 +46,20 @@ const Dashboard: React.FC = () => {
     }
   }, []);
   
+  // Få kun fornavnet fra det fulde navn
+  const getFirstName = (fullName: string) => {
+    return fullName.split(' ')[0];
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">{t('dashboard.title')}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">
+            {selectedProfile ? `Hej ${getFirstName(selectedProfile.name)}` : 'Hej!'}
+          </h1>
           <p className="text-muted-foreground">
-            {t('dashboard.viewData')}
+            Velkommen til dit lønunivers
           </p>
         </div>
         
@@ -174,12 +182,6 @@ const Dashboard: React.FC = () => {
               <Button onClick={() => navigate('/upload')}>
                 {t('common.uploadPayslip')}
               </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="dashboard-card">
-            <CardContent>
-              <CalendarWidget />
             </CardContent>
           </Card>
         </>

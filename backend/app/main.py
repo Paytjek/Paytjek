@@ -4,9 +4,15 @@ from app.services.document_processor import DocumentProcessor
 from app.services.ocr_service import OCRService
 from app.services.parser_service import ParserService
 from app.services.validator_service import ValidatorService
+from app.services.ical_service import ICalService
 from app.models.validation import ValidationResult
 from app.config import settings
 import json
+import os
+from datetime import datetime, timedelta
+import requests
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -28,9 +34,104 @@ ocr_service = OCRService()
 parser_service = ParserService()
 validator_service = ValidatorService()
 
+# Model for shifts
+class ShiftEvent(BaseModel):
+    id: str
+    title: str
+    start: str  # ISO8601 datetime string
+    end: str    # ISO8601 datetime string
+    allDay: Optional[bool] = None
+
 @app.get("/")
 async def root():
     return {"status": "API er online", "version": "0.1.0"}
+
+@app.get("/api/v1/users")
+async def get_users():
+    """Hent liste over brugere"""
+    try:
+        # Læs brugere fra dummyUsers.json
+        users_file_path = os.path.join(os.path.dirname(__file__), "dummyUsers.json")
+        with open(users_file_path, "r", encoding="utf-8") as f:
+            users = json.load(f)
+        return users
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Kunne ikke hente brugere: {str(e)}")
+
+@app.get("/api/v1/users/{user_id}")
+async def get_user(user_id: str):
+    """Hent en specifik bruger baseret på bruger-ID"""
+    try:
+        # Læs brugere fra dummyUsers.json
+        users_file_path = os.path.join(os.path.dirname(__file__), "dummyUsers.json")
+        with open(users_file_path, "r", encoding="utf-8") as f:
+            users = json.load(f)
+        
+        # Find den specifike bruger
+        for user in users:
+            if user["user_id"] == user_id:
+                return user
+        
+        # Hvis brugeren ikke findes
+        raise HTTPException(status_code=404, detail=f"Bruger med id {user_id} blev ikke fundet")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Kunne ikke hente bruger: {str(e)}")
+
+@app.get("/api/v1/users/{user_id}/shifts", response_model=List[ShiftEvent])
+async def get_user_shifts(user_id: str):
+    """Hent vagter for en specifik bruger baseret på bruger-ID"""
+    try:
+        # Læs brugere fra dummyUsers.json
+        users_file_path = os.path.join(os.path.dirname(__file__), "dummyUsers.json")
+        with open(users_file_path, "r", encoding="utf-8") as f:
+            users = json.load(f)
+        
+        # Find den specifike bruger og ics_url
+        user = None
+        for u in users:
+            if u["user_id"] == user_id:
+                user = u
+                break
+        
+        if not user:
+            raise HTTPException(status_code=404, detail=f"Bruger med id {user_id} blev ikke fundet")
+        
+        # Hvis brugeren ikke har en ics_url
+        if not user.get("ics_url"):
+            # Returner dummy data
+            return [
+                ShiftEvent(
+                    id="dummy1",
+                    title="Dagvagt",
+                    start=(datetime.now() + timedelta(days=1)).isoformat(),
+                    end=(datetime.now() + timedelta(days=1, hours=8)).isoformat()
+                ),
+                ShiftEvent(
+                    id="dummy2",
+                    title="Aftenvagt",
+                    start=(datetime.now() + timedelta(days=3)).isoformat(),
+                    end=(datetime.now() + timedelta(days=3, hours=8)).isoformat()
+                )
+            ]
+        
+        # Brug ICalService til at hente og parse kalenderdata
+        ical_text = await ICalService.fetch_ical_data(user["ics_url"])
+        if not ical_text:
+            raise HTTPException(status_code=500, detail="Kunne ikke hente kalenderdata")
+            
+        events = await ICalService.parse_ical_data(ical_text)
+        if not events:
+            # Returner tomme vagter hvis der ikke blev fundet nogen
+            return []
+            
+        return events
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Kunne ikke hente vagter: {str(e)}")
 
 @app.post("/api/v1/upload", response_model=ValidationResult)
 async def upload_document(file: UploadFile = File(...)):
@@ -69,7 +170,7 @@ async def upload_document(file: UploadFile = File(...)):
                 except Exception as print_e:
                      print(f"(Could not print raw data due to: {print_e})")
                 print("--- End of failing data ---")
-                payslip_data_json = None 
+                payslip_data_json = None
 
         # Create the final result object using the outcome from the validator
         # and the serialized raw data
