@@ -8,6 +8,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    watch: {
+      // Brug polling i Docker-miljø
+      usePolling: true,
+      interval: 100,
+      // Overvåg alle filer, ikke kun de hyppigt ændrede
+      disableGlobbing: false,
+    },
   },
   plugins: [
     react(),
