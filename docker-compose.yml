@@ -3,27 +3,44 @@ version: '3.8'
 services:
   backend:
     build: ./backend
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
     environment:
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
-      - CORS_ORIGINS=http://localhost:8080,http://localhost:8081,http://frontend:80
+      - CORS_ORIGINS=http://localhost:8080,http://localhost:8081,http://frontend:8080
     volumes:
-      - ./backend/app:/app/app
+      - ./backend:/app
       - ./backend/uploads:/app/uploads
     restart: unless-stopped
+    networks:
+      - paytjek-network
 
   frontend:
     build:
       context: ./Frontend
-      dockerfile: Dockerfile.simple
+      dockerfile: Dockerfile.dev
     ports:
-      - "8080:80"
+      - "8081:8080"
     depends_on:
       - backend
     environment:
-      - VITE_API_URL=/api
+      - VITE_API_URL=http://localhost:8000
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     volumes:
-      - ./Frontend/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./Frontend/dist:/usr/share/nginx/html
-    restart: unless-stopped 
+      - ./Frontend/src:/app/src:cached
+      - ./Frontend/public:/app/public:cached
+      - ./Frontend/index.html:/app/index.html:cached
+      - ./Frontend/vite.config.ts:/app/vite.config.ts:cached
+      - ./Frontend/tsconfig.json:/app/tsconfig.json:cached
+      - ./Frontend/tailwind.config.ts:/app/tailwind.config.ts:cached
+      - ./Frontend/postcss.config.js:/app/postcss.config.js:cached
+      - ./Frontend/package.json:/app/package.json:cached
+    restart: unless-stopped
+    networks:
+      - paytjek-network
+
+networks:
+  paytjek-network:
+    driver: bridge 
