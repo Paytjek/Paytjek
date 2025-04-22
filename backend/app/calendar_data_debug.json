@@ -1,54 +1,5 @@
 [
   {
-    "id": "143151216",
-    "title": "7-15 - Lukket sengeafsnit (ADD1)",
-    "start": "2025-01-14T06:00:00+00:00",
-    "end": "2025-01-14T14:00:00+00:00",
-    "allDay": false
-  },
-  {
-    "id": "137653101",
-    "title": "FRI - Lukket sengeafsnit (ADD1)",
-    "start": "2025-01-14T07:00:00+00:00",
-    "end": "2025-01-14T21:00:00+00:00",
-    "allDay": false
-  },
-  {
-    "id": "137536798",
-    "title": "FRI - Lukket sengeafsnit (ADD1)",
-    "start": "2025-01-15T07:00:00+00:00",
-    "end": "2025-01-15T21:00:00+00:00",
-    "allDay": false
-  },
-  {
-    "id": "137653107",
-    "title": "8-16 - Lukket sengeafsnit (ADD1)",
-    "start": "2025-01-16T07:00:00+00:00",
-    "end": "2025-01-16T15:00:00+00:00",
-    "allDay": false
-  },
-  {
-    "id": "133701319",
-    "title": "15.30-23.30 - Lukket sengeafsnit (ADD1)",
-    "start": "2025-01-17T14:30:00+00:00",
-    "end": "2025-01-17T22:30:00+00:00",
-    "allDay": false
-  },
-  {
-    "id": "138504238",
-    "title": "15.30-23.30 - Lukket sengeafsnit (ADD1)",
-    "start": "2025-01-18T14:30:00+00:00",
-    "end": "2025-01-18T22:30:00+00:00",
-    "allDay": false
-  },
-  {
-    "id": "138504240",
-    "title": "15.30-23.30 - Lukket sengeafsnit (ADD1)",
-    "start": "2025-01-19T14:30:00+00:00",
-    "end": "2025-01-19T22:30:00+00:00",
-    "allDay": false
-  },
-  {
     "id": "139256366",
     "title": "15.30-23.30 - Lukket sengeafsnit (ADD1)",
     "start": "2025-01-22T14:30:00+00:00",

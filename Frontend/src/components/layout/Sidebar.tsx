@@ -21,7 +21,7 @@ const Sidebar: React.FC = () => {
         <Link to="/">
           <div className="flex items-center space-x-2">
             <img src="/assets/images/logo.svg" alt="PayTjek Logo" className="h-8 w-auto" />
-            <span className="font-bold text-lg">PayTjek!!!</span>
+            <span className="font-bold text-lg">PayTjek</span>
           </div>
         </Link>
       </div>
