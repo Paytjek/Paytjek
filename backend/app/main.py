@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, status
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, status, Form
 from fastapi.middleware.cors import CORSMiddleware
 import json
 import os
@@ -24,6 +24,10 @@ from app.routers.shifts import router as shifts_router
 
 # Import utils for ICS-håndtering
 from app.utils.ics_import import fetch_ics, ical_to_shifts
+
+# Import services (OCR og Document)
+from app.services.ocr_service import OCRService
+from app.services.document_processor import DocumentProcessor
 
 # Pydantic schemata
 from pydantic import BaseModel, EmailStr, Field
@@ -307,5 +311,60 @@ async def get_user_by_id(user_id: int, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         logging.error(f"Fejl ved hentning af DB-bruger: {e}")
         raise HTTPException(500, f"Kunne ikke hente bruger: {e}")
+
+# ---------- Upload-endpoint for lønsedler ---------- #
+@app.post("/api/v1/upload")
+async def upload_payslip(
+    file: UploadFile = File(...),
+    user_id: str = Form(...),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        logging.info(f"Upload-request modtaget for bruger {user_id}")
+        
+        # Validér at filen er i et acceptabelt format
+        DocumentProcessor.validate_file(file)
+        
+        # Gem filen midlertidigt
+        filepath = await DocumentProcessor.save_temp_file(file)
+        logging.info(f"Fil midlertidigt gemt som: {filepath}")
+        
+        # Søg efter bruger i databasen
+        stmt = sql_select(
+            User.id,
+            User.username,
+            User.full_name
+        ).where(User.username == user_id)
+        result = await db.execute(stmt)
+        user = result.first()
+        
+        if not user:
+            logging.warning(f"Bruger {user_id} ikke fundet")
+            raise HTTPException(status_code=404, detail=f"Bruger {user_id} ikke fundet")
+        
+        # Initialiser OCR Service
+        ocr_service = OCRService()
+        
+        # Udfør OCR på dokumentet
+        logging.info(f"Starter OCR-processering af fil {filepath}")
+        extracted_text = ocr_service.process_document(filepath)
+        logging.info(f"OCR-processering færdig, {len(extracted_text)} tegn ekstraheret")
+        
+        # Her ville vi normalt kalde en parser service for at strukturere data
+        # men for nu returnerer vi bare den rå tekst
+        dummy_result = {
+            "status": "success",
+            "message": "Lønseddel modtaget og behandlet",
+            "extracted_text_preview": extracted_text[:500] + "...",
+            "user": user.full_name,
+            "filename": file.filename,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        return dummy_result
+    
+    except Exception as e:
+        logging.error(f"Fejl under upload: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Upload-endpoint tilføjes senere, når afhængigheder er på plads
