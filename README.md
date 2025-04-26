@@ -1,71 +1,59 @@
-## Hi there 👋
-
-<!--
-**Paytjek/Paytjek** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-
-Here are some ideas to get you started:
-
-- 🔭 I'm currently working on ...
-- 🌱 I'm currently learning ...
-- 👯 I'm looking to collaborate on ...
-- 🤔 I'm looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
-
-## Docker Setup
+# Paytjek
 
 This project can be run using Docker and Docker Compose, which containerizes both the frontend and backend applications.
 
-### Prerequisites
+## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
-### Environment Variables
+## Environment Variables
 
-Create a `.env` file in the root directory with the following variables:
+For production environment, create a `.env` file in the root directory with:
 
 ```
+DATABASE_URL=postgresql+asyncpg://username:password@host:port/database
 MISTRAL_API_KEY=your_mistral_api_key_here
 ```
 
-### Building and Running
+**Note:** Contact the team for the actual database credentials and API keys. Never commit credentials to version control.
 
-To build and start the application:
+## Building and Running for Production
+
+To build and start the application in production mode:
 
 ```bash
 # Build the Docker images
-docker-compose build
+docker-compose -f docker-compose.prod.yml build
 
 # Start the containers
-docker-compose up
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
 The services will be available at:
 - Frontend: http://localhost:8080
 - Backend API: http://localhost:8000
 
-To run in detached mode (in the background):
-
-```bash
-docker-compose up -d
-```
-
 To stop the containers:
 
 ```bash
-docker-compose down
+docker-compose -f docker-compose.prod.yml down
 ```
 
-### Development vs Production
+## Troubleshooting
 
-The current configuration is set up for development with volumes mounted to enable hot reloading of code changes.
+If you encounter encoding issues with environment files:
 
-For production deployment, consider:
-1. Removing the volume mounts
-2. Adding proper environment configuration
-3. Setting up a reverse proxy (like Nginx or Traefik) for TLS termination
-4. Implementing proper logging and monitoring
+```bash
+echo DATABASE_URL=your_database_url > .env.new
+echo MISTRAL_API_KEY=your_mistral_api_key >> .env.new
+del .env
+move .env.new .env
+```
+
+For calendar data issues, check that:
+1. Backend is connected to the Supabase database
+2. `VITE_API_URL` in `docker-compose.prod.yml` is set to `http://localhost:8000`
+3. Calendar API endpoint returns JSON data
+
+For database connection issues, use the `/db-info` endpoint to verify the connection.

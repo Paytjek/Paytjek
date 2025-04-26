@@ -15,6 +15,21 @@ export default defineConfig(({ mode }) => ({
       // Overvåg alle filer, ikke kun de hyppigt ændrede
       disableGlobbing: false,
     },
+    proxy: {
+      // Proxy API requests to backend
+      '/api': {
+        target: 'http://backend:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+      // Proxy API v1 direct access
+      '/api/v1': {
+        target: 'http://backend:8000',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path,
+      }
+    }
   },
   plugins: [
     react(),

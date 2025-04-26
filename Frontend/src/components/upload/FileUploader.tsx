@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import { useProfile } from "@/contexts/ProfileContext";
 
 const API_URL = "http://localhost:8000"; // Ændr til den faktiske backend-URL
 
@@ -13,6 +14,7 @@ const FileUploader: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { selectedProfile } = useProfile();
   const [dragActive, setDragActive] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -71,6 +73,16 @@ const FileUploader: React.FC = () => {
   const uploadFiles = async () => {
     if (files.length === 0) return;
     
+    // Kontroller om der er valgt en brugerprofil
+    if (!selectedProfile?.user_id) {
+      toast({
+        title: "Ingen bruger valgt",
+        description: "Vælg venligst en bruger før du uploader en lønseddel",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setUploading(true);
     setProgress(10);
     
@@ -78,6 +90,9 @@ const FileUploader: React.FC = () => {
       // Upload filen til vores backend-API
       const formData = new FormData();
       formData.append("file", files[0]);
+      
+      // Tilføj bruger-ID til formsdata
+      formData.append("user_id", selectedProfile.user_id);
       
       setProgress(30);
       
@@ -98,8 +113,9 @@ const FileUploader: React.FC = () => {
       
       const validationResult = await response.json();
       
-      // Gem resultatet i localstorage til dashboardet
-      localStorage.setItem("validationResult", JSON.stringify(validationResult));
+      // Gem resultatet i localstorage med bruger-specifik nøgle
+      const storageKey = `validationResult_${selectedProfile.user_id}`;
+      localStorage.setItem(storageKey, JSON.stringify(validationResult));
       
       setProgress(100);
       
@@ -126,6 +142,20 @@ const FileUploader: React.FC = () => {
 
   return (
     <div className="max-w-3xl mx-auto">
+      {!selectedProfile ? (
+        <div className="text-center p-6 bg-amber-50 rounded-lg mb-4">
+          <p className="text-amber-800 font-medium">
+            Vælg en bruger i topmenuen før du uploader en lønseddel
+          </p>
+        </div>
+      ) : (
+        <div className="text-center p-4 bg-blue-50 rounded-lg mb-4">
+          <p className="text-blue-800">
+            Du uploader nu lønseddel for <strong>{selectedProfile.name}</strong>
+          </p>
+        </div>
+      )}
+      
       <div
         className={`border-2 border-dashed rounded-lg p-10 transition-colors ${
           dragActive ? "border-primary bg-primary/5" : "border-gray-300"
@@ -201,7 +231,7 @@ const FileUploader: React.FC = () => {
               <Button
                 className="w-full"
                 onClick={uploadFiles}
-                disabled={files.length === 0}
+                disabled={files.length === 0 || !selectedProfile}
               >
                 {t('common.upload')}
               </Button>

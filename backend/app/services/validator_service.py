@@ -1,8 +1,27 @@
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Union, Optional
 from app.models.validation import ValidationResult, ValidationIssue
 import logging
 
 logger = logging.getLogger(__name__)
+
+# Helper function to safely get a value, with clear path logging
+def get_value(data: Any, path: str, default=None):
+    """Get a value from a nested dictionary using dot notation for the path."""
+    try:
+        parts = path.split('.')
+        current = data
+        for part in parts:
+            if not isinstance(current, dict):
+                logger.warning(f"Cannot access '{part}' in '{path}': parent is not a dict but {type(current)}")
+                return default
+            if part not in current:
+                logger.warning(f"Key '{part}' not found in path '{path}'")
+                return default
+            current = current[part]
+        return current
+    except Exception as e:
+        logger.warning(f"Error accessing path '{path}': {str(e)}")
+        return default
 
 # Helper function to safely get a numerical value from potentially nested dict or direct value
 def get_numerical_value(data: Any, key: str, default: float = 0.0) -> float:
@@ -29,10 +48,45 @@ def get_numerical_value(data: Any, key: str, default: float = 0.0) -> float:
              logger.warning(f"Value for key '{key}' is not a number, parsable dict, or convertible string. Value: {value}, Type: {type(value)}")
              return default
 
+# Function to get value from any possible location in payslip data
+def get_value_from_payslip(data: Dict[str, Any], possible_paths: List[str], default: Any = None) -> Any:
+    """
+    Try to get a value from multiple possible paths in payslip data.
+    
+    Args:
+        data: The payslip data dictionary
+        possible_paths: List of possible json paths to try
+        default: Default value to return if not found
+        
+    Returns:
+        The found value or default if not found
+    """
+    for path in possible_paths:
+        try:
+            parts = path.split('.')
+            current = data
+            
+            for part in parts:
+                if not isinstance(current, dict):
+                    break
+                if part not in current:
+                    break
+                current = current[part]
+            else:
+                # If we got here, we found the value
+                if current is not None:
+                    logger.debug(f"Found value at path: {path}")
+                    return current
+        except Exception as e:
+            logger.debug(f"Error accessing path {path}: {str(e)}")
+            continue
+    
+    logger.debug(f"Could not find value in any of the paths: {possible_paths}")
+    return default
+
 class ValidatorService:
     def __init__(self):
-        # I en fuld implementering ville vi indlæse overenskomstregler her
-        pass
+        logger.info("Initializing ValidatorService")
     
     def validate_payslip(self, payslip_data: Dict[str, Any]) -> Dict[str, bool]:
         """Validerer lønseddeldata mod overenskomstregler og love."""
@@ -48,35 +102,98 @@ class ValidatorService:
             ))
             return {"valid": False, "issues": issues}
 
-        # Safely get nested dictionaries first
-        indkomst_data = payslip_data.get('indkomstoplysninger', {}) if isinstance(payslip_data, dict) else {}
-        fradrag_data = payslip_data.get('fradrag', {}) if isinstance(payslip_data, dict) else {}
-        # We still attempt to get feriepenge from top level, as its location is unclear
-        # If it's nested elsewhere, this needs adjustment
-        feriepenge = get_numerical_value(payslip_data, "feriepenge") 
-
-        # Safely get numerical values from the correct nested locations
-        # Corrected key from 'bruttoløn' to 'bruttolon' based on actual data
-        bruttoløn = get_numerical_value(indkomst_data, "bruttolon")
+        # Check for required sections
+        required_sections = ["metadata", "løn"]
+        for section in required_sections:
+            if section not in payslip_data or not isinstance(payslip_data[section], dict):
+                issues.append(ValidationIssue(
+                    field=section,
+                    issue_type="missing_section",
+                    description=f"Required section '{section}' is missing or invalid.",
+                    severity="error"
+                ))
         
-        # Try getting tax values with underscore first (as seen in data), then hyphen
-        a_skat = get_numerical_value(fradrag_data, "a_skat")
-        if a_skat == 0.0 and isinstance(fradrag_data, dict) and "A-skat" in fradrag_data: # Fallback to hyphenated if needed
-             a_skat = get_numerical_value(fradrag_data, "A-skat")
-
-        am_bidrag = get_numerical_value(fradrag_data, "am_bidrag")
-        # Note: AM-bidrag is often negative in payslips, get_numerical_value handles this.
-        # Check if key exists before fallback
-        if am_bidrag == 0.0 and isinstance(fradrag_data, dict) and "AM-bidrag" in fradrag_data: 
-             am_bidrag = get_numerical_value(fradrag_data, "AM-bidrag")
-
+        # Check for critical metadata
+        metadata = payslip_data.get('metadata', {})
+        critical_metadata = ['periode', 'navn']
+        for field in critical_metadata:
+            if not metadata.get(field):
+                issues.append(ValidationIssue(
+                    field=f"metadata.{field}",
+                    issue_type="missing_field",
+                    description=f"Critical metadata field '{field}' is missing.",
+                    severity="warning"
+                ))
+        
+        # Extract financial values with multiple possible paths
+        bruttoløn = get_value_from_payslip(payslip_data, [
+            'løn.samlet_løn_før_skat',
+            'bruttolon.beløb',
+            'løn.brutto',
+            'indkomstoplysninger.bruttolon'
+        ])
+        
+        if isinstance(bruttoløn, str):
+            try:
+                bruttoløn = float(bruttoløn.replace('.', '').replace(',', '.'))
+            except (ValueError, TypeError):
+                bruttoløn = 0
+        
+        feriepenge = get_value_from_payslip(payslip_data, [
+            'feriepenge.optjent',
+            'ferie.feriegodtgørelse_fond',
+            'feriepenge'
+        ])
+        
+        if isinstance(feriepenge, str):
+            try:
+                feriepenge = float(feriepenge.replace('.', '').replace(',', '.'))
+            except (ValueError, TypeError):
+                feriepenge = 0
+        
+        a_skat = get_value_from_payslip(payslip_data, [
+            'løn.skat.skat',
+            'a_skat.beløb',
+            'fradrag.a_skat',
+            'fradrag.A-skat'
+        ])
+        
+        if isinstance(a_skat, str):
+            try:
+                a_skat = float(a_skat.replace('.', '').replace(',', '.'))
+            except (ValueError, TypeError):
+                a_skat = 0
+        
+        am_bidrag = get_value_from_payslip(payslip_data, [
+            'løn.skat.arbejdsmarkedsbidrag',
+            'am_bidrag.beløb',
+            'fradrag.am_bidrag',
+            'fradrag.AM-bidrag'
+        ])
+        
+        if isinstance(am_bidrag, str):
+            try:
+                am_bidrag = float(am_bidrag.replace('.', '').replace(',', '.'))
+            except (ValueError, TypeError):
+                am_bidrag = 0
+        
+        # Ensure numerical values are positive where appropriate
+        if bruttoløn and bruttoløn < 0:
+            issues.append(ValidationIssue(
+                field="bruttoløn",
+                issue_type="negative_value",
+                description=f"Bruttoløn ({bruttoløn:.2f}) cannot be negative.",
+                severity="error"
+            ))
+        
         # --- Validation Logic using safe values --- 
         
-        # Feriepenge check
-        if bruttoløn > 0: # Avoid division by zero or meaningless checks
+        # Validate only if we have required values
+        if bruttoløn and bruttoløn > 0:
+            # Feriepenge check
             expected_feriepenge = bruttoløn * 0.125
             # Allow for small rounding differences (e.g., 1 DKK)
-            if feriepenge < (expected_feriepenge - 1): 
+            if feriepenge and feriepenge < (expected_feriepenge - 1): 
                 issues.append(ValidationIssue(
                     field="feriepenge",
                     issue_type="below_threshold",
@@ -84,32 +201,177 @@ class ValidatorService:
                     severity="warning"
                 ))
         
-        # A-skat check (more robust)
-        if bruttoløn > 0: # Only check if gross pay is positive
+            # A-skat check (more robust)
             # Use a slightly wider range and check absolute value for flexibility
-            # Check if a_skat is not None before performing calculations
-            if a_skat is not None and (a_skat < 0 or a_skat < bruttoløn * 0.3 or a_skat > bruttoløn * 0.55): 
+            if a_skat is not None:
+                if a_skat < 0 or a_skat < bruttoløn * 0.3 or a_skat > bruttoløn * 0.55: 
+                    issues.append(ValidationIssue(
+                        field="a_skat",
+                        issue_type="unusual_value",
+                        description=f"A-skat ({a_skat:.2f}) ser usædvanlig ud ift. bruttoløn ({bruttoløn:.2f}). Forventet interval ca. 30-55% og positivt.",
+                        severity="warning"
+                    ))
+        
+            # AM-bidrag check (more robust)
+            if am_bidrag is not None:
+                # AM-bidrag should be around 8% of gross pay
+                expected_am_bidrag = bruttoløn * 0.08
+                # Handle both positive and negative AM-bidrag representations
+                am_bidrag_abs = abs(am_bidrag)
+                # Allow small difference (e.g., 1 DKK or 10%)
+                difference = abs(am_bidrag_abs - expected_am_bidrag)
+                if difference > 1.0 and difference > expected_am_bidrag * 0.1:
+                    issues.append(ValidationIssue(
+                        field="am_bidrag",
+                        issue_type="incorrect_value",
+                        description=f"AM-bidrag ({am_bidrag:.2f}) er ikke tæt på 8% af bruttoløn ({expected_am_bidrag:.2f}).",
+                        severity="warning"
+                    ))
+        
+        # Check specific fields for Region Hovedstaden payslips
+        løn_data = payslip_data.get('løn', {})
+        
+        # Check if any arbejdstimer are defined
+        arbejdstimer = payslip_data.get('arbejdstimer', [])
+        if not arbejdstimer:
+            issues.append(ValidationIssue(
+                field="arbejdstimer",
+                issue_type="missing_data",
+                description="Ingen arbejdstimer fundet i lønsedlen. Dette er nødvendigt for kalenderfunktionen.",
+                severity="warning"
+            ))
+        
+        # Return only validation status and issues, not the raw data
+        return {"valid": len([i for i in issues if i.severity == "error"]) == 0, "issues": issues}
+    
+    def _validate_metadata(self, data: Dict[str, Any], issues: List[ValidationIssue]):
+        """Validate required metadata fields."""
+        required_fields = ["periode", "navn", "arbejdsplads"]
+        for field in required_fields:
+            if not get_value(data, f"metadata.{field}"):
                 issues.append(ValidationIssue(
-                    field="fradrag.a_skat/A-skat",
-                    issue_type="unusual_value",
-                    description=f"A-skat ({a_skat:.2f}) ser usædvanlig ud ift. bruttoløn ({bruttoløn:.2f}). Forventet interval ca. 30-55% og positivt.",
+                    field=f"metadata.{field}",
+                    issue_type="missing_field",
+                    description=f"Required metadata field '{field}' is missing or empty.",
+                    severity="warning"
+                ))
+    
+    def _validate_salary(self, data: Dict[str, Any], issues: List[ValidationIssue]):
+        """Validate salary section fields."""
+        # Check if basic salary info exists
+        if not get_value(data, "løn.samlet_løn_før_skat"):
+            issues.append(ValidationIssue(
+                field="løn.samlet_løn_før_skat",
+                issue_type="missing_field",
+                description="Total gross salary is missing or zero.",
+                severity="error"
+            ))
+        
+        # Check if salary details exist
+        if not get_value(data, "løn.grundløn"):
+            issues.append(ValidationIssue(
+                field="løn.grundløn",
+                issue_type="missing_field",
+                description="Base salary information is missing.",
+                severity="warning"
+            ))
+        
+        # Check if net amount exists
+        if not get_value(data, "løn.netto_udbetalt"):
+            issues.append(ValidationIssue(
+                field="løn.netto_udbetalt", 
+                issue_type="missing_field",
+                description="Net salary amount is missing.",
+                severity="warning"
+            ))
+    
+    def _validate_pension(self, data: Dict[str, Any], issues: List[ValidationIssue]):
+        """Validate pension section fields."""
+        if not get_value(data, "pension.samlet_pensionsbidrag"):
+            issues.append(ValidationIssue(
+                field="pension.samlet_pensionsbidrag",
+                issue_type="missing_field",
+                description="Total pension contribution is missing.",
+                severity="warning"
+            ))
+    
+    def _validate_vacation(self, data: Dict[str, Any], issues: List[ValidationIssue]):
+        """Validate vacation section fields."""
+        # At least one vacation field should exist
+        vacation_fields = [
+            "ferie.ferie_med_løn_saldo", 
+            "ferie.feriegodtgørelse_fond",
+            "feriepenge.optjent"
+        ]
+        
+        if not any(get_value(data, field) for field in vacation_fields):
+            issues.append(ValidationIssue(
+                field="ferie",
+                issue_type="missing_data",
+                description="No vacation balance or earned vacation pay information found.",
+                severity="warning"
+            ))
+    
+    def _validate_numerical_values(self, data: Dict[str, Any], issues: List[ValidationIssue]):
+        """Validate numerical values for reasonable ranges and relationships."""
+        # Get key numerical values
+        bruttoløn = get_numerical_value(data, "løn.samlet_løn_før_skat")
+        if not bruttoløn:
+            bruttoløn = get_numerical_value(data, "bruttolon.beløb")
+        
+        # Skip validation if no valid gross salary
+        if not bruttoløn or bruttoløn <= 0:
+            return
+        
+        # Validate vacation pay (approx 12.5% of gross salary)
+        feriepenge = get_numerical_value(data, "feriepenge.optjent") 
+        if not feriepenge:
+            feriepenge = get_numerical_value(data, "ferie.feriegodtgørelse_fond")
+        
+        if feriepenge and feriepenge > 0:
+            expected_feriepenge = bruttoløn * 0.125
+            # Allow for small rounding differences
+            if feriepenge < (expected_feriepenge - 1):
+                issues.append(ValidationIssue(
+                    field="feriepenge",
+                    issue_type="below_threshold",
+                    description=f"Feriepenge ({feriepenge:.2f}) ser ud til at være under standard 12.5% af bruttoløn ({expected_feriepenge:.2f}).",
                     severity="warning"
                 ))
         
-        # AM-bidrag check (more robust)
-        if bruttoløn > 0:
-            # AM-bidrag should be around 8% of gross pay. It's often represented as negative.
+        # Validate tax (A-skat)
+        a_skat = get_numerical_value(data, "løn.skat.skat")
+        if not a_skat:
+            a_skat = get_numerical_value(data, "fradrag.a_skat")
+            if not a_skat:
+                a_skat = get_numerical_value(data, "fradrag.A-skat")
+                if not a_skat:
+                    a_skat = get_numerical_value(data, "a_skat.beløb")
+        
+        if a_skat and (a_skat < 0 or a_skat < bruttoløn * 0.3 or a_skat > bruttoløn * 0.55):
+            issues.append(ValidationIssue(
+                field="a_skat",
+                issue_type="unusual_value",
+                description=f"A-skat ({a_skat:.2f}) ser usædvanlig ud ift. bruttoløn ({bruttoløn:.2f}). Forventet interval ca. 30-55% og positivt.",
+                severity="warning"
+            ))
+        
+        # Validate AM-bidrag (should be around 8% of gross salary)
+        am_bidrag = get_numerical_value(data, "løn.skat.arbejdsmarkedsbidrag")
+        if not am_bidrag:
+            am_bidrag = get_numerical_value(data, "fradrag.am_bidrag")
+            if not am_bidrag:
+                am_bidrag = get_numerical_value(data, "fradrag.AM-bidrag")
+                if not am_bidrag:
+                    am_bidrag = get_numerical_value(data, "am_bidrag.beløb")
+        
+        if am_bidrag:
             expected_am_bidrag = bruttoløn * 0.08
-            # Compare absolute values for robustness, allow small difference (e.g., 1 DKK)
-            if abs(abs(am_bidrag) - expected_am_bidrag) > 1.0: 
+            # Compare absolute values to handle negative representation
+            if abs(abs(am_bidrag) - expected_am_bidrag) > 1.0:
                 issues.append(ValidationIssue(
-                    field="fradrag.am_bidrag/AM-bidrag",
+                    field="am_bidrag",
                     issue_type="incorrect_value",
                     description=f"AM-bidrag ({am_bidrag:.2f}) er ikke tæt på 8% af bruttoløn ({expected_am_bidrag:.2f}).",
-                    severity="error"
+                    severity="warning"
                 ))
-        
-        # I den fulde implementering ville vi have mange flere regler
-        
-        # Return only validation status and issues, not the raw data
-        return {"valid": len(issues) == 0, "issues": issues}
