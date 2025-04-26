@@ -321,13 +321,16 @@ async def upload_payslip(
 ):
     try:
         logging.info(f"Upload-request modtaget for bruger {user_id}")
+        print(f"Upload-request modtaget for bruger {user_id} med fil {file.filename}")
         
         # Validér at filen er i et acceptabelt format
         DocumentProcessor.validate_file(file)
+        print(f"Filformat valideret: {file.content_type}")
         
         # Gem filen midlertidigt
         filepath = await DocumentProcessor.save_temp_file(file)
         logging.info(f"Fil midlertidigt gemt som: {filepath}")
+        print(f"Fil midlertidigt gemt som: {filepath}")
         
         # Søg efter bruger i databasen
         stmt = sql_select(
@@ -342,13 +345,24 @@ async def upload_payslip(
             logging.warning(f"Bruger {user_id} ikke fundet")
             raise HTTPException(status_code=404, detail=f"Bruger {user_id} ikke fundet")
         
+        print(f"Bruger fundet: {user.full_name}")
+        
         # Initialiser OCR Service
         ocr_service = OCRService()
+        print("OCR Service initialiseret")
         
         # Udfør OCR på dokumentet
         logging.info(f"Starter OCR-processering af fil {filepath}")
+        print(f"Starter OCR-processering af fil {filepath}")
         extracted_text = ocr_service.process_document(filepath)
         logging.info(f"OCR-processering færdig, {len(extracted_text)} tegn ekstraheret")
+        print(f"OCR-processering færdig, {len(extracted_text)} tegn ekstraheret")
+        
+        # Gem OCR output til en fil vi kan inspicere
+        output_path = os.path.join(os.path.dirname(filepath), f"ocr_output_{os.path.basename(filepath)}.txt")
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(extracted_text)
+        print(f"OCR output gemt til: {output_path}")
         
         # Her ville vi normalt kalde en parser service for at strukturere data
         # men for nu returnerer vi bare den rå tekst
@@ -356,15 +370,18 @@ async def upload_payslip(
             "status": "success",
             "message": "Lønseddel modtaget og behandlet",
             "extracted_text_preview": extracted_text[:500] + "...",
+            "extracted_text_file": output_path,
             "user": user.full_name,
             "filename": file.filename,
             "timestamp": datetime.now().isoformat()
         }
         
+        print(f"Behandling færdig, returnerer resultat")
         return dummy_result
     
     except Exception as e:
         logging.error(f"Fejl under upload: {str(e)}", exc_info=True)
+        print(f"FEJL under upload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Upload-endpoint tilføjes senere, når afhængigheder er på plads
