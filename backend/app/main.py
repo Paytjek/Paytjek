@@ -1,25 +1,61 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
-from app.services.document_processor import DocumentProcessor
-from app.services.ocr_service import OCRService
-from app.services.parser_service import ParserService
-from app.services.validator_service import ValidatorService
-from app.services.ical_service import ICalService
-from app.models.validation import ValidationResult
-from app.config import settings
 import json
 import os
 from datetime import datetime, timedelta
-import requests
-from typing import List, Dict, Any, Optional
-from pydantic import BaseModel
+from typing import List
+import logging
+import sys
 
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy import text, select as sql_select    # Tilføjet sql_select alias
+
+# Import config og database
+from app.config import settings
+from app.db import get_db, Base
+
+# Import modeller
+from app.models import User, Payslip, Shift
+
+# Import routers
+from app.routers.users import router as users_router
+from app.routers.shifts import router as shifts_router
+
+# Import utils for ICS-håndtering
+from app.utils.ics_import import fetch_ics, ical_to_shifts
+
+# Pydantic schemata
+from pydantic import BaseModel, EmailStr, Field
+from app.schemas import ProfileRead, UserBase as UserBaseSchema, UserCreate as UserCreateSchema, UserRead as UserReadSchema
+
+# --- NYT ENDPOINT --- #
 app = FastAPI(title=settings.PROJECT_NAME)
 
-# Print the CORS origins being used
-print(f"--- Initializing CORS with origins: {settings.CORS_ORIGINS} ---")
+# Sæt logging niveau til DEBUG
+logging.basicConfig(level=logging.DEBUG)
 
-# Tillad CORS for frontend
+@app.get("/db-info")
+async def db_info(session: AsyncSession = Depends(get_db)):
+    """
+    Returnerer hvilket host, port og database-navn 
+    som AsyncSession er forbundet til – så vi kan se, 
+    at vi rammer Supabase og ikke lokal Postgres.
+    """
+    try:
+        result = await session.execute(text("""
+            SELECT
+              inet_server_addr()   AS host,
+              inet_server_port()   AS port,
+              current_database()   AS db
+        """))
+        host, port, db = result.one()
+        return {"host": host, "port": port, "database": db}
+    except Exception as e:
+        logging.error(f"Fejl i /db-info: {e}")
+        raise HTTPException(status_code=500, detail="Kunne ikke hente DB-info")
+
+# ---------- App og CORS ---------- #
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -28,166 +64,248 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialiser services
-document_processor = DocumentProcessor()
-ocr_service = OCRService()
-parser_service = ParserService()
-validator_service = ValidatorService()
-
-# Model for shifts
-class ShiftEvent(BaseModel):
-    id: str
-    title: str
-    start: str  # ISO8601 datetime string
-    end: str    # ISO8601 datetime string
-    allDay: Optional[bool] = None
-
+# ---------- Root & health ---------- #
 @app.get("/")
 async def root():
     return {"status": "API er online", "version": "0.1.0"}
 
-@app.get("/api/v1/users")
-async def get_users():
-    """Hent liste over brugere"""
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+# ---------- Frontend-user endpoints ---------- #
+@app.get("/api/v1/users", response_model=List[ProfileRead])
+async def get_users(db: AsyncSession = Depends(get_db)):
     try:
-        # Læs brugere fra dummyUsers.json
-        users_file_path = os.path.join(os.path.dirname(__file__), "dummyUsers.json")
-        with open(users_file_path, "r", encoding="utf-8") as f:
-            users = json.load(f)
-        return users
+        # Eksplicit specificere kolonner
+        stmt = sql_select(
+            User.id,
+            User.username,
+            User.full_name,
+            User.phone,
+            User.ics_url,
+            User.workplace,
+            User.is_active,
+            User.created_at
+        )
+        result = await db.execute(stmt)
+        users = result.all()
+
+        profiles = []
+        for user in users:
+            profiles.append(ProfileRead(
+                user_id=user.username,
+                name=user.full_name,
+                workplace=user.workplace or "",
+                language="da",
+                ics_url=user.ics_url
+            ))
+        return profiles
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Kunne ikke hente brugere: {str(e)}")
+        logging.error(f"Fejl ved hentning af brugere: {e}")
+        raise HTTPException(500, f"Kunne ikke hente brugere: {e}")
 
 @app.get("/api/v1/users/{user_id}")
-async def get_user(user_id: str):
-    """Hent en specifik bruger baseret på bruger-ID"""
+async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
     try:
-        # Læs brugere fra dummyUsers.json
-        users_file_path = os.path.join(os.path.dirname(__file__), "dummyUsers.json")
-        with open(users_file_path, "r", encoding="utf-8") as f:
-            users = json.load(f)
-        
-        # Find den specifike bruger
-        for user in users:
-            if user["user_id"] == user_id:
-                return user
-        
-        # Hvis brugeren ikke findes
-        raise HTTPException(status_code=404, detail=f"Bruger med id {user_id} blev ikke fundet")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Kunne ikke hente bruger: {str(e)}")
-
-@app.get("/api/v1/users/{user_id}/shifts", response_model=List[ShiftEvent])
-async def get_user_shifts(user_id: str):
-    """Hent vagter for en specifik bruger baseret på bruger-ID"""
-    try:
-        # Læs brugere fra dummyUsers.json
-        users_file_path = os.path.join(os.path.dirname(__file__), "dummyUsers.json")
-        with open(users_file_path, "r", encoding="utf-8") as f:
-            users = json.load(f)
-        
-        # Find den specifike bruger og ics_url
-        user = None
-        for u in users:
-            if u["user_id"] == user_id:
-                user = u
-                break
+        # Eksplicit specificere kolonner
+        stmt = sql_select(
+            User.id,
+            User.username,
+            User.full_name,
+            User.phone,
+            User.ics_url,
+            User.workplace,
+            User.is_active,
+            User.created_at
+        ).where(User.username == user_id)
+        result = await db.execute(stmt)
+        user = result.first()
         
         if not user:
-            raise HTTPException(status_code=404, detail=f"Bruger med id {user_id} blev ikke fundet")
-        
-        # Hvis brugeren ikke har en ics_url
-        if not user.get("ics_url"):
-            # Returner dummy data
-            return [
-                ShiftEvent(
-                    id="dummy1",
-                    title="Dagvagt",
-                    start=(datetime.now() + timedelta(days=1)).isoformat(),
-                    end=(datetime.now() + timedelta(days=1, hours=8)).isoformat()
-                ),
-                ShiftEvent(
-                    id="dummy2",
-                    title="Aftenvagt",
-                    start=(datetime.now() + timedelta(days=3)).isoformat(),
-                    end=(datetime.now() + timedelta(days=3, hours=8)).isoformat()
-                )
-            ]
-        
-        # Brug ICalService til at hente og parse kalenderdata
-        ical_text = await ICalService.fetch_ical_data(user["ics_url"])
-        if not ical_text:
-            raise HTTPException(status_code=500, detail="Kunne ikke hente kalenderdata")
-            
-        events = await ICalService.parse_ical_data(ical_text)
-        if not events:
-            # Returner tomme vagter hvis der ikke blev fundet nogen
-            return []
-            
-        return events
-        
+            raise HTTPException(404, f"Bruger {user_id} ikke fundet")
+        return ProfileRead(
+            user_id=user.username,
+            name=user.full_name,
+            workplace=user.workplace or "",
+            language="da",
+            ics_url=user.ics_url
+        )
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Kunne ikke hente vagter: {str(e)}")
+        logging.error(f"Fejl ved hentning af bruger: {e}")
+        raise HTTPException(500, f"Kunne ikke hente bruger: {e}")
 
-@app.post("/api/v1/upload", response_model=ValidationResult)
-async def upload_document(file: UploadFile = File(...)):
-    """Upload og analyser en lønseddel."""
+@app.get("/api/v1/users/{user_id}/shifts")
+async def get_user_shifts(user_id: str, db: AsyncSession = Depends(get_db)):
+    print(f"DEBUG: get_user_shifts kaldt for bruger {user_id}", file=sys.stderr)
     try:
-        # Valider filen
-        document_processor.validate_file(file)
+        # Eksplicit specificere kolonner
+        stmt = sql_select(
+            User.id,
+            User.username,
+            User.full_name,
+            User.ics_url,
+            User.workplace
+        ).where(User.username == user_id)
+        result = await db.execute(stmt)
+        user = result.first()
         
-        # Gem filen midlertidigt
-        file_path = await document_processor.save_temp_file(file)
-        
-        # Behandl filen med OCR
-        ocr_text = ocr_service.process_document(file_path)
-        
-        # Parser teksten til struktureret data
-        raw_payslip_data = parser_service.parse_payslip(ocr_text)
-        
-        # Valider lønseddeldata (validator now returns a dict)
-        validation_outcome = validator_service.validate_payslip(raw_payslip_data)
-        is_valid = validation_outcome["valid"]
-        validation_issues = validation_outcome["issues"]
+        if not user:
+            print(f"DEBUG: Bruger {user_id} ikke fundet i databasen", file=sys.stderr)
+            logging.error(f"Bruger {user_id} ikke fundet")
+            raise HTTPException(404, f"Bruger {user_id} ikke fundet")
 
-        # Convert the original raw payslip data dict to JSON string
-        payslip_data_json = None
-        if raw_payslip_data: # Check if data exists
-            print("--- Attempting to serialize raw_payslip_data dictionary ---") # Log before trying
-            try:
-                # Use default=str to handle potential non-serializable types like Decimal or date/time
-                payslip_data_json = json.dumps(raw_payslip_data, indent=2, default=str) 
-                print("--- Successfully serialized raw_payslip_data --- ") # Log success
-            except Exception as e: # Catch ANY exception during serialization
-                print(f"!!! CRITICAL: Error serializing raw_payslip_data: {type(e).__name__}: {e} !!!")
-                print("--- Failing data causing serialization error: ---")
-                try:
-                    print(raw_payslip_data) 
-                except Exception as print_e:
-                     print(f"(Could not print raw data due to: {print_e})")
-                print("--- End of failing data ---")
-                payslip_data_json = None
+        print(f"DEBUG: Bruger {user_id} fundet. ICS URL: {user.ics_url}", file=sys.stderr)
 
-        # Create the final result object using the outcome from the validator
-        # and the serialized raw data
-        final_result = ValidationResult(
-            valid=is_valid,
-            issues=validation_issues,
-            payslip_data=payslip_data_json
-        )
+        if not user.ics_url:
+            print(f"DEBUG: Bruger {user_id} har ingen ICS URL - returnerer dummy data", file=sys.stderr)
+            logging.warning(f"Bruger {user_id} har ingen ICS URL – returnerer dummy-data")
+            now = datetime.now()
+            return [
+                {"id": "dummy1",
+                 "title": "Dagvagt (Dummy)",
+                 "start": (now + timedelta(days=1)).isoformat(),
+                 "end": (now + timedelta(days=1, hours=8)).isoformat()},
+                {"id": "dummy2",
+                 "title": "Aftenvagt (Dummy)",
+                 "start": (now + timedelta(days=3)).isoformat(),
+                 "end": (now + timedelta(days=3, hours=8)).isoformat()}
+            ]
 
-        # DEBUG: Print the final result (with JSON string) before returning
-        print("--- Final Validation Result START ---")
-        print(final_result)
-        print("--- Final Validation Result END ---")
+        print(f"DEBUG: Kalder fetch_ics med URL: {user.ics_url}", file=sys.stderr)
+        logging.info(f"Henter ICS-data for {user_id} fra {user.ics_url}")
         
-        return final_result # Return the object with payslip_data as JSON string
+        # For at sikre at logning fungerer korrekt
+        print(f"DEBUGGING: Forsøger at hente ICS fra URL: {user.ics_url}")
         
-    except HTTPException as e:
-        raise e
+        # Hent ICS data med vores opdaterede funktion
+        ics_data = await fetch_ics(user.ics_url)
+        
+        # Log resultatet
+        if ics_data:
+            print(f"DEBUG: ICS data hentet succesfuldt. Længde: {len(ics_data)} bytes", file=sys.stderr)
+            print(f"DEBUGGING: ICS data hentet succesfuldt, længde: {len(ics_data)} bytes")
+            logging.info(f"ICS-data hentet, {len(ics_data)} bytes")
+        else:
+            print(f"DEBUG: Kunne ikke hente ICS data fra {user.ics_url}", file=sys.stderr)
+            print("DEBUGGING: Kunne ikke hente ICS data, ics_data er None")
+            logging.error(f"Kunne ikke hente ICS fra {user.ics_url}, data er None")
+            
+            # Test direkte HTTP adgang til URL for at se om den er tilgængelig
+            print(f"DEBUG: Tester direkte HTTP adgang til URL: {user.ics_url}", file=sys.stderr)
+            
+            # Returnér dummy-data i stedet for at fejle
+            now = datetime.now()
+            return [
+                {"id": "dummy-error-1",
+                 "title": "ERROR: Kunne ikke hente kalenderdata",
+                 "start": now.isoformat(),
+                 "end": (now + timedelta(hours=1)).isoformat()},
+            ]
+
+        try:
+            print(f"DEBUG: Kalder ical_to_shifts med {len(ics_data)} bytes data", file=sys.stderr)
+            shifts = await ical_to_shifts(ics_data)
+            print(f"DEBUG: ical_to_shifts returnerede {len(shifts)} vagter", file=sys.stderr)
+            print(f"DEBUGGING: Konverterede {len(shifts)} vagter fra ICS data")
+            
+            # Gem debug data
+            debug_path = os.path.join(os.path.dirname(__file__), "calendar_data_debug.json")
+            with open(debug_path, "w", encoding="utf-8") as f:
+                json.dump(shifts, f, ensure_ascii=False, indent=2)
+                
+            return shifts
+        except Exception as parse_error:
+            print(f"DEBUG: Fejl ved parsing af ICS data: {parse_error}", file=sys.stderr)
+            logging.error(f"Fejl ved parsing af ICS data: {parse_error}")
+            print(f"DEBUGGING: Fejl ved parsing af ICS data: {parse_error}")
+            # Returnér fejlbesked som en vagt
+            now = datetime.now()
+            return [
+                {"id": "parse-error",
+                 "title": f"ERROR: Kunne ikke parse kalenderdata: {str(parse_error)}",
+                 "start": now.isoformat(),
+                 "end": (now + timedelta(hours=1)).isoformat()},
+            ]
+            
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"DEBUG: Generel fejl ved hentning af vagter: {e}", file=sys.stderr)
+        logging.error(f"Fejl ved hentning af vagter: {e}")
+        print(f"DEBUGGING: Generel fejl ved hentning af vagter: {e}")
+        raise HTTPException(500, f"Kunne ikke hente vagter: {e}")
+
+# Inkluder routers (efter de specifikke ruter for at undgå konflikter)
+app.include_router(users_router)
+app.include_router(shifts_router)
+
+# ---------- DB‐CRUD endpoints ---------- #
+@app.get("/api/v1/db/users", response_model=List[UserReadSchema])
+async def get_all_users(db: AsyncSession = Depends(get_db)):
+    try:
+        # Eksplicit specificere kolonner
+        stmt = sql_select(
+            User.id,
+            User.username,
+            User.full_name,
+            User.phone,
+            User.ics_url,
+            User.workplace,
+            User.is_active,
+            User.created_at
+        )
+        result = await db.execute(stmt)
+        return result.all()
+    except Exception as e:
+        logging.error(f"Fejl ved hentning af DB-brugere: {e}")
+        raise HTTPException(500, f"Kunne ikke hente brugere: {e}")
+
+@app.post("/api/v1/db/users", response_model=UserReadSchema, status_code=status.HTTP_201_CREATED)
+async def create_user(user: UserCreateSchema, db: AsyncSession = Depends(get_db)):
+    try:
+        db_user = User(
+            username=user.username,
+            full_name=user.full_name,
+            phone=user.phone,
+            ics_url=user.ics_url,
+            workplace=user.workplace
+        )
+        db.add(db_user)
+        await db.commit()
+        await db.refresh(db_user)
+        return db_user
+    except Exception as e:
+        await db.rollback()
+        logging.error(f"Fejl ved oprettelse af DB-bruger: {e}")
+        raise HTTPException(500, f"Kunne ikke oprette bruger: {e}")
+
+@app.get("/api/v1/db/users/{user_id}", response_model=UserReadSchema)
+async def get_user_by_id(user_id: int, db: AsyncSession = Depends(get_db)):
+    try:
+        # Eksplicit specificere kolonner
+        stmt = sql_select(
+            User.id,
+            User.username,
+            User.full_name,
+            User.phone,
+            User.ics_url,
+            User.workplace,
+            User.is_active,
+            User.created_at
+        ).where(User.id == user_id)
+        result = await db.execute(stmt)
+        user = result.first()
+        
+        if not user:
+            raise HTTPException(404, f"Bruger med ID {user_id} ikke fundet")
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Fejl ved hentning af DB-bruger: {e}")
+        raise HTTPException(500, f"Kunne ikke hente bruger: {e}")
+
+# Upload-endpoint tilføjes senere, når afhængigheder er på plads

@@ -5,8 +5,9 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 from dotenv import load_dotenv
+import configparser
 
-# Sørg for at /app (din backend-mappe) er på sys.path
+# Sørg for at backend-mappen er på sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Load miljøvariabler fra .env i projektroden
@@ -21,19 +22,28 @@ if not raw_url:
     raise RuntimeError("DATABASE_URL is not set – tjek din .env og docker-compose")
 sync_url = raw_url.replace("+asyncpg", "")
 
-# Sæt den synkrone URL i Alembic
-config.set_main_option("sqlalchemy.url", sync_url)
+# Escape procent-tegn i URL, så ConfigParser ikke forsøger interpolation
+escaped_url = sync_url.replace('%', '%%')
 
-# Importér metadata og modeller (alle dine modeller skal være registreret under Base)
-from db import Base
-import models   # <-- Dette sikrer, at User, PaySlip og Shift registreres på Base.metadata
+# Slå interpolation fra på ConfigParser
+file_cfg = configparser.ConfigParser(interpolation=None)
+file_cfg.read(config.config_file_name)
+config.file_config = file_cfg
+
+# Sæt den synkrone URL i Alembic
+config.set_main_option("sqlalchemy.url", escaped_url)
+
+# Importér metadata og modeller
+from db import Base           # noqa: E402
+import models                  # noqa: E402
+
 target_metadata = Base.metadata
 
 # Setup logging
 fileConfig(config.config_file_name)
 
 def run_migrations_offline():
-    """Kør migrationer uden DB‑forbindelse."""
+    """Kør migrationer uden DB-forbindelse."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -44,8 +54,9 @@ def run_migrations_offline():
     with context.begin_transaction():
         context.run_migrations()
 
+
 def run_migrations_online():
-    """Kør migrationer med DB‑forbindelse."""
+    """Kør migrationer med DB-forbindelse."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
@@ -59,7 +70,7 @@ def run_migrations_online():
         with context.begin_transaction():
             context.run_migrations()
 
-# Vælg offline/online baseret på kørselstype
+# Kør offline eller online baseret på tilstand
 if context.is_offline_mode():
     run_migrations_offline()
 else:

@@ -33,10 +33,16 @@ RUN python -c "import torch; print('PyTorch er installeret korrekt:', torch.__ve
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install email-validator for Pydantic's EmailStr 
+RUN pip install --no-cache-dir email-validator
+
 # Opret temp_uploads mappen
 RUN mkdir -p /app/temp_uploads
 
 COPY . .
+
+# Installer Alembic (hvis ikke allerede i requirements.txt)
+RUN pip install --no-cache-dir alembic
 
 # Sikrer at mappen er skrivbar
 RUN chmod 777 /app/temp_uploads

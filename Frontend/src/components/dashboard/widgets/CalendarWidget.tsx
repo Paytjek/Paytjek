@@ -179,7 +179,7 @@ const EventComponent = ({ event }: { event: ShiftEvent }) => {
 const CalendarWidget: React.FC<CalendarWidgetProps> = ({ isFullPage = true }) => {
   const { t } = useTranslation();
   const { selectedProfile } = useProfile();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [events, setEvents] = useState<ShiftEvent[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [view, setView] = useState<"month" | "week">("month");
@@ -221,21 +221,72 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ isFullPage = true }) =>
       if (selectedProfile?.user_id) {
         setLoading(true);
         try {
-          // Hent kalenderdata fra backend API
+          // Hent kalenderdata fra backend API med fetch i stedet for axios
           console.log("Henter kalenderdata for bruger:", selectedProfile.user_id);
-          const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/users/${selectedProfile.user_id}/shifts`);
+          // Sørg for at URL'en er korrekt og at VITE_API_URL er sat korrekt
+          console.log("API URL:", import.meta.env.VITE_API_URL);
+          // Brug den fulde URL for at sikre at vi ikke henter frontend-siden
+          const apiUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/users/${selectedProfile.user_id}/shifts`;
+          console.log("Fuld API URL:", apiUrl);
           
-          if (!response.data) {
-            throw new Error(`Fejl ved hentning af kalenderdata: Tom respons`);
+          // Brug fetch i stedet for axios for mere direkte kontrol
+          const fetchResponse = await fetch(apiUrl);
+          console.log("Response status:", fetchResponse.status);
+          
+          // Log rå tekst
+          const responseText = await fetchResponse.text();
+          console.log("Rå respons tekst (første 100 tegn):", responseText.substring(0, 100));
+          
+          // Konverter til JSON
+          let data;
+          try {
+            data = JSON.parse(responseText);
+            console.log("Parsed data type:", typeof data);
+            console.log("Is array:", Array.isArray(data));
+            console.log("Data length (if array):", Array.isArray(data) ? data.length : 'n/a');
+          } catch (parseError) {
+            console.error("Fejl ved parsing af JSON:", parseError);
+            throw new Error(`Kunne ikke parse JSON: ${parseError.message}`);
+          }
+          
+          // Resten af koden håndterer data på samme måde
+          if (!data) {
+            throw new Error(`Fejl ved hentning af kalenderdata: Ingen data`);
           }
           
           // Gem rådata til debug
-          setRawData(response.data);
-          console.log("Rådata fra API:", response.data);
+          setRawData(data);
+          
+          // Check om data er et array, hvis ikke, håndtér det
+          if (!Array.isArray(data)) {
+            console.error("API returdata er ikke et array:", data);
+            // Prøv at se om data er gemt i et underobjekt
+            const possibleArrayData = 
+              data.shifts || 
+              data.events || 
+              data.data || 
+              data.items || 
+              [];
+              
+            if (Array.isArray(possibleArrayData)) {
+              console.log("Fandt array i responset:", possibleArrayData);
+              setRawData(possibleArrayData);
+              data = possibleArrayData; // Brug dette array i stedet
+            } else {
+              console.error("Kunne ikke finde et brugbart array i responset");
+              setEvents([]);
+              setLoading(false);
+              return; // Afslut funktionen tidligt
+            }
+          }
+          
+          console.log("Antal vagter fra API:", data.length);
+          console.log("Første vagt:", data[0]);
           
           // Konverter datostrenge til Date objekter
-          const parsedEvents = response.data.map((event: any, index: number) => {
-            console.log(`Parsing event ${index + 1}:`, event);
+          const parsedEvents = data.map((event: any, index: number) => {
+            // Log kun de første 5 events for at undgå overflod
+            if (index < 5) console.log(`Parsing event ${index + 1}:`, event);
             try {
               // Brug parseISO for sikker dato-parsing
               const startDate = event.start ? parseISO(event.start) : new Date();
@@ -253,7 +304,8 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ isFullPage = true }) =>
                 end: endDate
               };
               
-              console.log("Parsed event success:", validEvent);
+              // Log kun de første 5 parsede events
+              if (index < 5) console.log("Parsed event success:", validEvent);
               return validEvent;
             } catch (parseError) {
               console.error("Fejl ved parsing af event:", event, parseError);
@@ -262,7 +314,13 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ isFullPage = true }) =>
             }
           }).filter(Boolean); // Filter null events ud
           
-          console.log("Parsed events:", parsedEvents.length);
+          console.log("Antal parsede events:", parsedEvents.length);
+          if (parsedEvents.length > 0) {
+            console.log("Første parsede event dato:", parsedEvents[0].start);
+            console.log("Sidste parsede event dato:", parsedEvents[parsedEvents.length - 1].start);
+            
+            // Vi opdaterer ikke currentDate her, så kalenderen forbliver i indeværende måned
+          }
           setEvents(parsedEvents);
         } catch (error) {
           console.error('Fejl ved indlæsning af kalenderdata:', error);
@@ -322,10 +380,15 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ isFullPage = true }) =>
       <div className="flex justify-between items-center">
         <div className="flex space-x-2">
           <button 
-            onClick={() => setCurrentDate(new Date())} 
+            onClick={() => {
+              // Gå til den første vagt hvis vi har vagter, ellers forbliv på nuværende dato
+              if (events.length > 0) {
+                setCurrentDate(events[0].start);
+              }
+            }} 
             className="px-3 py-1 text-sm rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            I dag
+            Vis vagter
           </button>
           <button 
             onClick={() => {
@@ -378,6 +441,14 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ isFullPage = true }) =>
         {loading ? (
           <div className="flex items-center justify-center h-96">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : events.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-96 space-y-4">
+            <p className="text-lg font-medium text-gray-600">Ingen vagter at vise</p>
+            <p className="text-sm text-gray-500">Der blev ikke fundet nogen vagter for den valgte periode</p>
+            <Button onClick={downloadCalendarData} variant="outline" size="sm">
+              Download rådata for fejlfinding
+            </Button>
           </div>
         ) : (
           <Calendar
