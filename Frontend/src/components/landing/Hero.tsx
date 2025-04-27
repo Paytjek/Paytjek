@@ -21,7 +21,7 @@ const Hero: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900">
-            Får du den korrekte løn ifølge din
+            Korrekt løn ifølge din
             <br />
             <span className="text-blue-600">
               <TypingEffect 
