@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import Hero from "@/components/landing/Hero";
 import Features from "@/components/landing/Features";
 import HowItWorks from "@/components/landing/HowItWorks";
+import Comparison from "@/components/landing/Comparison";
+import Security from "@/components/landing/Security";
 import Footer from "@/components/landing/Footer";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
@@ -43,6 +45,8 @@ const Landing: React.FC = () => {
         <Hero />
         <Features />
         <HowItWorks />
+        <Security />
+        <Comparison />
       </main>
       
       <Footer />

@@ -40,6 +40,11 @@ To stop the containers:
 docker-compose -f docker-compose.prod.yml down
 ```
 
+Check frontend changes:
+```bash
+docker-compose -f docker-compose.prod.yml build --no-cache frontend && docker-compose -f docker-compose.prod.yml up -d --force-recreate frontend
+```
+
 ## Troubleshooting
 
 If you encounter encoding issues with environment files:
