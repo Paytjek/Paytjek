@@ -27,6 +27,13 @@ const PayslipAnimation = () => {
 
   return (
     <section className="flex flex-col items-center justify-center py-20 bg-white overflow-hidden">
+      {/* Stationary headline above animation */}
+      <div className="text-center mb-10">
+        <h2 className="text-[28px] font-bold text-[#111827]">
+          Løntjek, der altid rammer <span style={{ color: BLUE }}>plet</span>
+        </h2>
+      </div>
+      
       <div className="container relative max-w-5xl mx-auto h-[500px] px-4">
         {/* Step 1: Extract payslip data text */}
         <AnimatePresence>
@@ -330,6 +337,13 @@ const PayslipAnimation = () => {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+      
+      {/* Stationary description text below animation */}
+      <div className="text-center mt-10">
+        <p className="text-[16px] font-normal text-[#6B7280] max-w-3xl mx-auto">
+          PayTjek finder lønfejl hurtigt og præcist – uanset hvilken overenskomst, kontrakt eller arbejdstidsopgørelse, du arbejder efter.
+        </p>
       </div>
     </section>
   );
