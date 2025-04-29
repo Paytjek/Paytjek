@@ -1,7 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Upload, Settings, PieChart, LogOut, Calendar } from "lucide-react";
 
 const navItems = [
@@ -14,46 +12,56 @@ const navItems = [
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   return (
-    <div className="h-full flex flex-col bg-sidebar border-r">
-      <div className="p-4 border-b">
-        <Link to="/">
-          <div className="flex items-center space-x-2">
-            <img src="/assets/images/logo.svg" alt="PayTjek Logo" className="h-8 w-auto" />
-            <span className="font-bold text-lg">PayTjek</span>
-          </div>
-        </Link>
-      </div>
-      
-      <div className="flex-1 p-4">
-        <div className="space-y-2">
-          {navItems.map((item) => (
-            <Link to={item.path} key={item.path}>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start",
-                  location.pathname === item.path
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                )}
-              >
-                <item.icon className="h-4 w-4 mr-2" />
-                {item.name}
-              </Button>
-            </Link>
-          ))}
+    <aside
+      className="relative w-full max-w-xs min-h-screen flex flex-col items-stretch px-0 py-0 font-sans overflow-hidden"
+      style={{
+        background: "#3063A8",
+        borderTopRightRadius: '64px',
+        borderBottomRightRadius: '48px',
+        boxShadow: '0 4px 32px rgba(37,99,235,0.10)'
+      }}
+    >
+      {/* Dekorativ grafik baggrund */}
+      <svg className="absolute left-[-60px] bottom-[-80px] w-[300px] h-[300px] opacity-10 pointer-events-none select-none" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="150" cy="150" r="150" fill="#fff" />
+      </svg>
+      <svg className="absolute right-[-80px] top-[-60px] w-[220px] h-[220px] opacity-10 pointer-events-none select-none" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="110" cy="110" r="110" fill="#fff" />
+      </svg>
+      {/* Logo */}
+      <div className="flex flex-col gap-4 px-8 pt-8 pb-4 z-10">
+        <div className="flex items-center gap-2 mb-2">
+          <img src="/paytjek-logo-white-blue-bg-72-512x512.png" alt="Paytjek Logo" className="h-10 w-auto rounded" />
+          <span className="text-3xl font-extrabold tracking-tight text-white">PayTjek</span>
         </div>
       </div>
-      
-      <div className="p-4 border-t">
-        <Button variant="ghost" className="w-full justify-start text-muted-foreground">
-          <LogOut className="h-4 w-4 mr-2" />
+      {/* Menu */}
+      <nav className="flex flex-col gap-4 px-6 pt-2 pb-8 flex-1 z-10">
+        {navItems.map((item) => (
+          <button
+            key={item.path}
+            onClick={() => navigate(item.path)}
+            className={`flex items-center gap-4 px-2 py-3 rounded-2xl transition text-left w-full text-xl font-bold
+              ${location.pathname === item.path ? "bg-white shadow-lg text-[#2563eb]" : "bg-transparent text-white opacity-90 hover:bg-blue-400 hover:text-white"}
+            `}
+            style={{fontSize: '1.25rem'}}
+          >
+            <item.icon className={`w-7 h-7 ${location.pathname === item.path ? 'text-[#2563eb]' : 'text-white opacity-90'}`} />
+            <span>{item.name}</span>
+          </button>
+        ))}
+      </nav>
+      {/* Logout nederst */}
+      <div className="px-8 pb-8 pt-4 z-10 mt-auto">
+        <button className="flex items-center text-white font-semibold text-lg hover:underline opacity-90" onClick={() => {/* TODO: implementer logout */}}>
+          <LogOut className="h-6 w-6 mr-2" />
           Logout
-        </Button>
+        </button>
       </div>
-    </div>
+    </aside>
   );
 };
 

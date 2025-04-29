@@ -10,7 +10,12 @@ import { useProfile } from "@/contexts/ProfileContext";
 
 const API_URL = "http://localhost:8000"; // Ændr til den faktiske backend-URL
 
-const FileUploader: React.FC = () => {
+interface FileUploaderProps {
+  onUploadStart: () => void;
+  onUploadSuccess: (uploadId: string) => void;
+}
+
+const FileUploader: React.FC<FileUploaderProps> = ({ onUploadSuccess, onUploadStart }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -72,6 +77,7 @@ const FileUploader: React.FC = () => {
 
   const uploadFiles = async () => {
     if (files.length === 0) return;
+    if (onUploadStart) onUploadStart();
     
     // Kontroller om der er valgt en brugerprofil
     if (!selectedProfile?.user_id) {
@@ -125,8 +131,7 @@ const FileUploader: React.FC = () => {
         variant: "default",
       });
       
-      // Naviger til dashboard efter vellykket upload
-      setTimeout(() => navigate("/dashboard"), 1000);
+      if (onUploadSuccess) onUploadSuccess(validationResult.uploadId);
     } catch (error) {
       console.error("Upload error:", error);
       toast({
@@ -141,23 +146,9 @@ const FileUploader: React.FC = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      {!selectedProfile ? (
-        <div className="text-center p-6 bg-amber-50 rounded-lg mb-4">
-          <p className="text-amber-800 font-medium">
-            Vælg en bruger i topmenuen før du uploader en lønseddel
-          </p>
-        </div>
-      ) : (
-        <div className="text-center p-4 bg-blue-50 rounded-lg mb-4">
-          <p className="text-blue-800">
-            Du uploader nu lønseddel for <strong>{selectedProfile.name}</strong>
-          </p>
-        </div>
-      )}
-      
+    <div className="max-w-4xl mx-auto w-full">
       <div
-        className={`border-2 border-dashed rounded-lg p-10 transition-colors ${
+        className={`border-2 border-dashed rounded-lg p-20 min-h-[220px] w-full transition-colors ${
           dragActive ? "border-primary bg-primary/5" : "border-gray-300"
         }`}
         onDragEnter={handleDrag}
@@ -167,10 +158,10 @@ const FileUploader: React.FC = () => {
       >
         <div className="text-center">
           <Upload className="mx-auto h-12 w-12 text-gray-400" />
-          <div className="mt-4 flex text-sm leading-6 text-gray-600">
+          <div className="mt-4 flex flex-col items-center">
             <label
               htmlFor="file-upload"
-              className="relative cursor-pointer rounded-md bg-white font-semibold text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 hover:text-primary/80"
+              className="relative cursor-pointer rounded-md bg-white font-semibold text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 hover:text-primary/80 px-6 py-3 text-lg"
             >
               <span>{t('upload.fileUploader.browse')}</span>
               <input
@@ -182,9 +173,9 @@ const FileUploader: React.FC = () => {
                 multiple
               />
             </label>
-            <p className="pl-1">{t('upload.fileUploader.or')}</p>
+            <span className="mt-2 text-base text-gray-600">{t('upload.fileUploader.or')}</span>
           </div>
-          <p className="text-xs leading-5 text-gray-600 mt-2">
+          <p className="text-base leading-5 text-gray-600 mt-2">
             {t('upload.fileUploader.dragDrop')}
           </p>
         </div>

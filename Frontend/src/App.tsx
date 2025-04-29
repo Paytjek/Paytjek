@@ -12,6 +12,7 @@ import Schedule from "./pages/Schedule";
 import MainLayout from "./components/layout/MainLayout";
 import NotFound from "./pages/NotFound";
 import { ProfileProvider } from "./contexts/ProfileContext";
+import UploadFlow from "./pages/UploadFlow";
 
 const queryClient = new QueryClient();
 
@@ -24,9 +25,10 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/upload-flow" element={<UploadFlow />} />
             <Route element={<MainLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/upload" element={<Upload />} />
+              <Route path="/upload" element={<UploadFlow />} />
               <Route path="/schedule" element={<Schedule />} />
               <Route path="/analysis" element={<Analysis />} />
               <Route path="/settings" element={<Settings />} />

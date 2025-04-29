@@ -1,0 +1,3 @@
+DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+OPENAI_API_KEY=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
+MISTRAL_API_KEY=fJc0nt0eJFQe5x5CDvM4E49LBkFQCBl4 
