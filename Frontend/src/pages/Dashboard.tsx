@@ -82,7 +82,7 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="flex items-center">
               <Calendar className="mr-2 h-4 w-4" />
-              April 2025
+              March 2025
             </Button>
             <Button variant="outline" size="sm">
               <Download className="mr-2 h-4 w-4" />
@@ -90,7 +90,24 @@ const Dashboard: React.FC = () => {
             </Button>
           </div>
         </div>
-        
+
+        {/* Upload lønseddel sektion - ALTID synlig */}
+        <Card className="dashboard-card p-8 text-center">
+          <CardContent>
+            <h3 className="text-lg font-semibold mb-2">{t('common.uploadPayslip')}</h3>
+            <p className="text-muted-foreground mb-4">
+              Upload din seneste lønseddel for at få en detaljeret analyse af din løn
+            </p>
+            <Button 
+              onClick={() => navigate('/upload')} 
+              className="mx-auto mt-2"
+            >
+              {t('common.uploadPayslip')}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Herunder kommer statuskort og lønseddel-data, afhængigt af om der er uploadet */}
         {hasUploadedPayslip && validationResult ? (
           <>
             {/* Validerings Status Card */}
@@ -187,7 +204,7 @@ const Dashboard: React.FC = () => {
             </div>
           </>
         ) : (
-          // Vis denne sektion hvis brugeren ikke har uploadet en lønseddel
+          // Vis kun en informativ besked hvis brugeren ikke har uploadet en lønseddel
           <Card className="dashboard-card p-8 text-center">
             <CardContent>
               <p className="text-muted-foreground mb-4">
@@ -196,9 +213,6 @@ const Dashboard: React.FC = () => {
                   : 'Ingen lønseddel er uploadet endnu.'}
                  Upload en lønseddel for at se analysen.
               </p>
-              <Button onClick={() => navigate('/upload')}>
-                {t('common.uploadPayslip', 'Upload lønseddel')}
-              </Button>
             </CardContent>
           </Card>
         )}

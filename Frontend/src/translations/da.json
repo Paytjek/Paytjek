@@ -8,7 +8,7 @@
     "goHome": "Gå tilbage til startsiden",
     "language": "Sprog",
     "getStarted": "Kom i gang",
-    "tryDemo": "Prøv Dashboard Demo",
+    "tryDemo": "Prøv Demo",
     "uploadPayslip": "Upload din lønseddel",
     "export": "Eksporter",
     "currentPayslip": "Nuværende lønseddel",
@@ -17,57 +17,58 @@
   },
   "landing": {
     "title": "Velkommen til PayTjek",
-    "description": "Analyser dine lønsedler og få værdifulde indsigter",
+    "description": "Automatisk lønseddeltjek og overenskomstverifikation",
     "hero": {
-      "title": "Forstå din lønseddel på få sekunder",
-      "description": "Upload din lønseddel og få øjeblikkelig indsigt i dine skatter, pension, feriepenge og mere med vores intuitive finansielle dashboard."
+      "title": "Får du den korrekte løn ifølge din overenskomst?",
+      "description": "Upload din lønseddel og lad PayTjek tjekke om alle elementer stemmer overens med din overenskomst. Vi hjælper med at sikre, at du får alle dine tillæg, den korrekte pension og rette ferieberegning."
     },
     "features": {
-      "title": "Kraftfulde finansielle indsigter",
-      "description": "Vores plugin-baserede platform hjælper dig med at visualisere og forstå alle aspekter af din lønseddel.",
+      "title": "Lønseddeltjek der gør en forskel",
+      "description": "Vi analyserer alle dele af din lønseddel for at sikre, at de opfylder kravene i din overenskomst.",
       "items": {
         "tax": {
-          "title": "Skatteanalyse",
-          "description": "Visualiser og forstå dine skattefradrag med tydelige opdelinger og indsigter."
+          "title": "Skatteberegning",
+          "description": "Vi kontrollerer, at din skat er beregnet korrekt i forhold til gældende regler og fradrag."
         },
         "pension": {
-          "title": "Pensionsoversigt",
-          "description": "Følg dine pensionsbidrag og projektér fremtidige pensionsopsparinger."
+          "title": "Pensionsindbetalinger",
+          "description": "Få bekræftet, at din arbejdsgiver indbetaler det korrekte pensionsbidrag i henhold til din overenskomst."
         },
         "vacation": {
-          "title": "Feriepenge",
-          "description": "Overvåg dine feriepenge og deres anvendelse gennem året."
+          "title": "Feriepenge & Feriefridage",
+          "description": "Verificér, at dine feriepenge og feriefridage bliver korrekt opgjort og udbetalt."
         },
         "timeOff": {
-          "title": "Fraværsmonitor",
-          "description": "Hold styr på sygedage, overarbejde og feriedage på ét sted."
+          "title": "Sygdom & Barsel",
+          "description": "Hold styr på din ret til løn under sygdom, omsorgsdage og barsel i henhold til din overenskomst."
         },
         "hours": {
-          "title": "Arbejdstimer",
-          "description": "Analyser arbejdstidsmønstre og produktivitet på tværs af lønningsperioder."
+          "title": "Arbejdstid & Tillæg",
+          "description": "Vi tjekker, at du får de rette tillæg for overarbejde, skiftehold, weekendarbejde og særlige arbejdsforhold."
         }
       }
     },
     "howItWorks": {
-      "title": "Sådan virker det",
-      "description": "Kom i gang på få minutter med vores enkle tre-trins proces.",
+      "badge": "SIMPEL PROCES",
+      "title": "Verificér din løn på få minutter",
+      "description": "Med PayTjek er det nemt at kontrollere, om din lønseddel stemmer overens med din overenskomst.",
       "steps": {
         "upload": {
           "title": "Upload din lønseddel",
-          "description": "Upload blot din lønseddel i PDF eller billedformat, så klarer systemet resten."
+          "description": "Upload blot din lønseddel i PDF eller billedformat, så klarer vores system resten."
         },
         "analysis": {
-          "title": "Smart analyse",
-          "description": "Vores AI-drevne system udtrækker og analyserer vigtig finansiel information fra dit dokument."
+          "title": "Automatisk analyse",
+          "description": "Vores AI-drevne system sammenligner din lønseddel med reglerne i din overenskomst."
         },
         "insights": {
-          "title": "Få visuelle indsigter",
-          "description": "Få adgang til smukke diagrammer og opdelinger af dine finansielle data i et brugervenligt dashboard."
+          "title": "Få klare resultater",
+          "description": "Få et tydeligt overblik over eventuelle afvigelser mellem din lønseddel og overenskomstens krav."
         }
       }
     },
     "footer": {
-      "tagline": "Gør personlig økonomi enkel gennem intelligent lønseddelanalyse.",
+      "tagline": "Vi hjælper danske lønmodtagere med at sikre, at deres lønseddel og rettigheder respekteres fuldt ud.",
       "product": "Produkt",
       "company": "Virksomhed",
       "about": "Om os",

@@ -4,7 +4,10 @@ import { useTranslation } from "react-i18next";
 import Hero from "@/components/landing/Hero";
 import Features from "@/components/landing/Features";
 import HowItWorks from "@/components/landing/HowItWorks";
+import Comparison from "@/components/landing/Comparison";
+import Security from "@/components/landing/Security";
 import Footer from "@/components/landing/Footer";
+import PayslipAnimation from "@/components/landing/PayslipAnimation";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Landing: React.FC = () => {
@@ -42,7 +45,10 @@ const Landing: React.FC = () => {
       <main className="flex-1">
         <Hero />
         <Features />
+        <PayslipAnimation />
         <HowItWorks />
+        <Security />
+        <Comparison />
       </main>
       
       <Footer />
