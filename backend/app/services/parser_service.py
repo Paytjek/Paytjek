@@ -32,13 +32,13 @@ class ParserService:
                     "navn": None,
                     "adresse": None,
                     "arbejdsplads": None,
-                    "tjenestenr": None,
                     "lønseddel_nr": None,
-                    "overenskomst": None,
+                    "tjenestenr": None,
                     "anciennitetsdato": None,
                     "jubilæumsdato": None,
                     "næste_løntrinsstigning": None,
-                    "område": None
+                    "område": None,
+                    "overenskomst": None
                 },
                 "løn": {
                     "grundløn": {"trin": None, "beløb": None, "timer_pr_uge": None},
@@ -47,21 +47,51 @@ class ParserService:
                     "særydelser": [],
                     "fradrag": [],
                     "samlet_løn_før_skat": None,
-                    "skat": {"arbejdsmarkedsbidrag": None, "trækprocent": None, "fradrag": None, "skat": None},
                     "netto_udbetalt": None,
                     "overførsel_dato": None
                 },
-                "pension": {"samlet_pensionsbidrag": None, "eget_bidrag": None, "pensionsprocent": None},
-                "ferie": {"ferie_med_løn_saldo": None, "ferie_uden_løn_saldo": None, "6_uge": None, "feriegodtgørelse_fond": None,
-                          "feriegodtgørelse_ekstra_tj": None, "ferietillæg_maj": None},
-                "afspadsering": {"saldo_start": None, "optjent_timer": None, "afholdt_timer": None, "saldo_slut": None},
+                "skat": {
+                    "arbejdsmarkedsbidrag": None,
+                    "fradrag": None,
+                    "skat": None,
+                    "trækprocent": None
+                },
+                "a_skat_og_am_bidrag": {
+                    "a_skat_beløb": None,
+                    "a_skat_procent": None,
+                    "am_bidrag_beløb": None,
+                    "am_bidrag_procent": None
+                },
+                "pension": {
+                    "eget_bidrag": None,
+                    "pensionsprocent": None,
+                    "samlet_pensionsbidrag": None
+                },
+                "bruttoløn": {
+                    "beløb": None,
+                    "heraf_pension": None
+                },
+                "feriepenge": {
+                    "optjent": None,
+                    "udbetalt": None
+                },
+                "ferie": {
+                    "6_uge": None,
+                    "ferie_med_løn_saldo": None,
+                    "ferie_uden_løn_saldo": None,
+                    "feriegodtgørelse_ekstra_tjeneste": None,
+                    "feriegodtgørelse_fond": None,
+                    "ferietillæg_maj": None
+                },
+                "afspadsering": {
+                    "afholdt_timer": None,
+                    "optjent_timer": None,
+                    "saldo_start": None,
+                    "saldo_slut": None
+                },
+                "særydelser": [],
                 "arbejdstimer": [],
-                "arbejdstimer_ics": [], # ICS-kompatibelt format for arbejdstimer
-                # Tilføj de manglende felter som validator kræver
-                "feriepenge": {"optjent": None, "udbetalt": None},
-                "bruttolon": {"beløb": None, "heraf_pension": None},
-                "a_skat": {"beløb": None, "procent": None},
-                "am_bidrag": {"beløb": None, "procent": None}
+                "arbejdstimer_ics": []
             }
 
             # Convert the template to JSON with proper indentation
@@ -93,18 +123,18 @@ Din opgave er at udtrække alle nøgleoplysninger og formatere dem som JSON i n�
 # Vigtige detaljer at fokusere på
 
 ## Metadata
-- periode: Perioden lønsedlen dækker (f.eks. "august 2024" eller "01.08-31.08.2024")
+- periode: Perioden lønsedlen dækker (f.eks. "september 2024" eller "01.09-30.09.2024")
 - cpr_nr: CPR-nummer - find formatet XXXXXX-XXXX (f.eks. "080498-0075")
 - navn: Medarbejderens fulde navn (f.eks. "Ernst Cæsius Jakobsen Krohn")
 - adresse: Komplet adresse med gade, nummer, etage og postnummer/by
 - arbejdsplads: Arbejdspladsens fulde navn (f.eks. "Region Hovedstadens Psykiatri")
+- lønseddel_nr: Lønseddelnummer format MM/ÅÅÅÅ (f.eks. "09/2024")
 - tjenestenr: Tjenestenummer - søg efter "Tjenestenr" eller "Tjnr" (f.eks. "15893")
-- lønseddel_nr: Lønseddelnummer format MM/ÅÅÅÅ (f.eks. "08/2024")
-- overenskomst: Overenskomstoplysninger (f.eks. "Ikke-ledende personale på SHK-området")
 - anciennitetsdato: Dato for anciennitet (f.eks. "01.08.2024")
 - jubilæumsdato: Dato for jubilæum (f.eks. "25.08.2022")
 - næste_løntrinsstigning: Dato for næste løntrinsstigning (f.eks. "01.08.2028")
 - område: Områdenummer (f.eks. "4")
+- overenskomst: Overenskomstoplysninger (f.eks. "Ikke-ledende personale på SHK-området")
 
 ## Løn
 - grundløn: Objekt med:
@@ -116,64 +146,74 @@ Din opgave er at udtrække alle nøgleoplysninger og formatere dem som JSON i n�
   - beløb: Beløb uden tusindtalsadskiller (f.eks. 1751.08)
   - pensionsgivende: true hvis markeret med "P", ellers false
 - fast_løn_i_alt: Samlet fast løn (f.eks. 27477.38)
-- særydelser: Liste over særydelser. Hver særydelse er et objekt med:
-  - type: Type særydelse (f.eks. "Ekstratimer" eller "Aftentillæg")
-  - antal: Antal enheder (f.eks. 9.0)
-  - sats: Sats pr. enhed (f.eks. 154.68)
-  - beløb: Samlet beløb (f.eks. 1392.12)
-  - pensionsgivende: true hvis markeret med "P", ellers false
 - fradrag: Liste over fradrag. Hvert fradrag er et objekt med:
   - type: Type fradrag (f.eks. "Feriefradrag" eller "ATP bidrag")
   - beløb: Beløb (f.eks. -161.18)
-- samlet_løn_før_skat: Samlet løn før skat (f.eks. 34957.00)
-- skat: Objekt med:
-  - arbejdsmarkedsbidrag: Arbejdsmarkedsbidrag beløb (f.eks. 2796.00)
-  - trækprocent: Skatteprocent (f.eks. 41)
-  - fradrag: Skattefradrag (f.eks. 4694.00)
-  - skat: Samlet skattebeløb (f.eks. 11261.00)
-- netto_udbetalt: Nettobeløb udbetalt (f.eks. 20900.00)
-- overførsel_dato: Dato for overførsel (f.eks. "2024-08-30")
+- samlet_løn_før_skat: Samlet løn før skat (f.eks. 27878.86)
+- netto_udbetalt: Nettobeløb udbetalt (f.eks. 17057.86)
+- overførsel_dato: Dato for overførsel (f.eks. "2024-09-30")
+
+## Skat
+- arbejdsmarkedsbidrag: Arbejdsmarkedsbidrag beløb (f.eks. 2230.00)
+- fradrag: Skattefradrag (f.eks. 4694.00)
+- skat: Samlet skattebeløb (f.eks. 8591.00)
+- trækprocent: Skatteprocent (f.eks. 41)
+
+## A-skat og AM-bidrag
+- a_skat_beløb: A-skat beløb (f.eks. 8591.00)
+- a_skat_procent: A-skat procent (f.eks. 41)
+- am_bidrag_beløb: AM-bidrag beløb (f.eks. 2230.00)
+- am_bidrag_procent: AM-bidrag procent (f.eks. 8)
 
 ## Pension
-- samlet_pensionsbidrag: Samlet pensionsbidrag (f.eks. 9260.85)
-- eget_bidrag: Eget bidrag til pension (f.eks. 3086.95)
+- samlet_pensionsbidrag: Samlet pensionsbidrag (f.eks. 3751.56)
+- eget_bidrag: Eget bidrag til pension (f.eks. 1250.52)
 - pensionsprocent: Pensionsprocent (f.eks. 13.55)
 
+## Bruttoløn
+- beløb: Samlet bruttoløn - samme som samlet_løn_før_skat (f.eks. 27878.86)
+- heraf_pension: Pensionsbidrag inkluderet i bruttolønnen (f.eks. 3751.56)
+
+## Feriepenge
+- optjent: Optjente feriepenge (f.eks. 4634.24)
+- udbetalt: Udbetalte feriepenge (hvis angivet, ellers null)
+
 ## Ferie
-- ferie_med_løn_saldo: Saldo for ferie med løn (f.eks. -13.33)
+- ferie_med_løn_saldo: Saldo for ferie med løn (f.eks. 0.00)
 - ferie_uden_løn_saldo: Saldo for ferie uden løn (f.eks. -4.01)
 - 6_uge: Sjette ferieuge (f.eks. 32.00)
-- feriegodtgørelse_fond: Feriegodtgørelse til fond (f.eks. 1381.06)
-- feriegodtgørelse_ekstra_tj: Feriegodtgørelse af ekstra tjeneste
-- ferietillæg_maj: Ferietillæg (f.eks. 508.70)
+- feriegodtgørelse_fond: Feriegodtgørelse til fond (f.eks. 48.50)
+- feriegodtgørelse_ekstra_tjeneste: Feriegodtgørelse af ekstra tjeneste
+- ferietillæg_maj: Ferietillæg (f.eks. 290.85)
 
 ## Afspadsering
-- saldo_start: Saldo ved periodens start
-- optjent_timer: Optjente timer i perioden
-- afholdt_timer: Afholdte timer i perioden
-- saldo_slut: Saldo ved periodens slutning (f.eks. 11.28) - ses under "Tilgodehavende afspadsering"
+- saldo_start: Saldo ved periodens start (f.eks. 11.28)
+- optjent_timer: Optjente timer i perioden (f.eks. 7.52)
+- afholdt_timer: Afholdte timer i perioden (f.eks. 8.00)
+- saldo_slut: Saldo ved periodens slutning (f.eks. 10.80)
+
+## Særydelser
+Hver særydelse er et objekt med:
+- type: Type særydelse (f.eks. "Lørdagstillæg" eller "Aftentillæg")
+- antal: Antal enheder (f.eks. 8.0)
+- sats: Sats pr. enhed (f.eks. 93.13)
+- beløb: Samlet beløb (f.eks. 745.04)
+- pensionsgivende: true hvis markeret med "P", ellers false
 
 ## Arbejdstimer
 For hver dag med arbejdstid fra "Arbejdstidsopgørelse"-sektionen, opret et objekt med:
-- dato: Dato i format YYYY-MM-DD (f.eks. "2024-07-10")
+- dato: Dato i format YYYY-MM-DD (f.eks. "2024-08-05")
 - arbejdstid: Arbejdstidsinterval (f.eks. "07:00-15:00")
 - normtid: Normtid i timer (f.eks. 8.0)
 - fravær: Type fravær hvis relevant (f.eks. "Ferietimer", "Kursustimer" eller null)
 - tillæg: Liste af tillæg for denne dag (f.eks. [{"type": "Aftentillæg", "timer": 6.0}])
 
-## Ekstra påkrævede felter
-- feriepenge: Udført som objekt med:
-  - optjent: Optjente feriepenge - se feriegodtgørelse til fond (f.eks. 1381.06)
-  - udbetalt: Udbetalte feriepenge (hvis angivet, ellers null)
-- bruttolon: Udført som objekt med:
-  - beløb: Samlet bruttoløn - samme som samlet_løn_før_skat (f.eks. 34957.00)
-  - heraf_pension: Pensionsbidrag inkluderet i bruttolønnen (f.eks. 9260.85)
-- a_skat: Udført som objekt med:
-  - beløb: A-skat beløb - samme som skat.skat (f.eks. 11261.00)
-  - procent: Skatteprocent - samme som skat.trækprocent (f.eks. 41)
-- am_bidrag: Udført som objekt med:
-  - beløb: Arbejdsmarkedsbidrag beløb - samme som skat.arbejdsmarkedsbidrag (f.eks. 2796.00)
-  - procent: Arbejdsmarkedsbidrag procent (typisk 8.0)
+## Arbejdstimer ICS
+Konvertering af arbejdstimer til kalendervenligt format med:
+- start_tid: Starttidspunkt i ISO format (f.eks. "2024-08-05T07:00:00")
+- slut_tid: Sluttidspunkt i ISO format (f.eks. "2024-08-05T15:00:00")
+- summary: Beskrivelse (f.eks. "Arbejdstid")
+- description: Detaljer om vagten (f.eks. "Normaltid: 8 timer")
 
 # Særlige formateringsretningslinjer
 - Konverter alle beløb til tal uden tusindtalsadskiller og med punktum som decimaltegn.
@@ -181,7 +221,7 @@ For hver dag med arbejdstid fra "Arbejdstidsopgørelse"-sektionen, opret et obje
 - Markering med "P" angiver pensionsgivende beløb - sæt pensionsgivende: true for disse.
 - Negative beløb (f.eks. -161.18) skal beholde minustegnet.
 - Hvis visse data ikke findes i lønsedlen, sæt værdien til null.
-- For datoer, brug formatet YYYY-MM-DD (f.eks. "2024-08-30").
+- For datoer, brug formatet YYYY-MM-DD (f.eks. "2024-09-30").
 
 # Særligt fokus på arbejdstidsopgørelsen
 - Find sektionen "Arbejdstidsopgørelse" eller "Optælling af timer".
@@ -281,6 +321,9 @@ OCR-tekst:
             if parsed_data.get("arbejdstimer") and not parsed_data.get("arbejdstimer_ics"):
                 parsed_data["arbejdstimer_ics"] = self._convert_to_ics_format(parsed_data["arbejdstimer"])
             
+            # Valider at alle påkrævede felter er til stede i dataudtrækningen
+            self.validate_extraction_completeness(parsed_data)
+            
             logger.info("Succesfuldt parset JSON fra LLM.")
             logger.debug(f"Komplet parset data: {pprint.pformat(parsed_data)}")
             return parsed_data
@@ -327,12 +370,23 @@ OCR-tekst:
     
     def _clean_numeric_values(self, data):
         """Rengør numeriske værdier i data strukturen for at sikre korrekt formatering"""
+        # Liste over feltnavne, der skal behandles som numeriske værdier
+        numeric_fields = [
+            'beløb', 'amount', 'sats', 'procent', 'arbejdsmarkedsbidrag', 'skat', 'fradrag', 
+            'fast_løn_i_alt', 'samlet_løn_før_skat', 'netto_udbetalt', 'samlet_pensionsbidrag',
+            'eget_bidrag', 'pensionsprocent', 'heraf_pension', 'a_skat_beløb', 'a_skat_procent',
+            'am_bidrag_beløb', 'am_bidrag_procent', 'optjent', 'udbetalt', 'normtid', 'timer',
+            'antal', 'saldo_start', 'optjent_timer', 'afholdt_timer', 'saldo_slut'
+        ]
+        
         if isinstance(data, dict):
             for key, value in data.items():
-                if isinstance(value, str) and key in ['beløb', 'amount', 'sats', 'procent', 'arbejdsmarkedsbidrag', 'skat', 'fradrag', 'fast_løn_i_alt', 'samlet_løn_før_skat', 'netto_udbetalt']:
+                if isinstance(value, str) and key in numeric_fields:
                     try:
                         # Rengør værdien - fjern tusindtalsadskillere og konverter komma til punktum
                         cleaned_value = value.replace(".", "").replace(",", ".")
+                        # Fjern eventuelle ikke-numeriske tegn (f.eks. kr, %, etc.)
+                        cleaned_value = ''.join(c for c in cleaned_value if c.isdigit() or c in '.-')
                         data[key] = float(cleaned_value)
                     except ValueError:
                         logger.warning(f"Kunne ikke konvertere {key}={value} til tal")
@@ -352,57 +406,51 @@ OCR-tekst:
                 "udbetalt": None
             }
         
-        # Tilføj bruttolon hvis mangler
-        if "bruttolon" not in data:
+        # Tilføj bruttoløn hvis mangler
+        if "bruttoløn" not in data:
             løn_data = data.get("løn", {})
             pension_data = data.get("pension", {})
-            data["bruttolon"] = {
+            data["bruttoløn"] = {
                 "beløb": løn_data.get("samlet_løn_før_skat"),
                 "heraf_pension": pension_data.get("samlet_pensionsbidrag")
             }
         
-        # Tilføj a_skat hvis mangler
-        if "a_skat" not in data:
-            skat_data = data.get("løn", {}).get("skat", {})
-            data["a_skat"] = {
-                "beløb": skat_data.get("skat"),
-                "procent": skat_data.get("trækprocent")
+        # Tilføj a_skat_og_am_bidrag hvis mangler
+        if "a_skat_og_am_bidrag" not in data:
+            skat_data = data.get("skat", {})
+            data["a_skat_og_am_bidrag"] = {
+                "a_skat_beløb": skat_data.get("skat"),
+                "a_skat_procent": skat_data.get("trækprocent"),
+                "am_bidrag_beløb": skat_data.get("arbejdsmarkedsbidrag"),
+                "am_bidrag_procent": 8.0  # Standard procent
             }
-        
-        # Tilføj am_bidrag hvis mangler
-        if "am_bidrag" not in data:
-            skat_data = data.get("løn", {}).get("skat", {})
+            
+            # Hvis vi har både beløb og grundlag, forsøg at beregne procenten
             am_bidrag_beløb = skat_data.get("arbejdsmarkedsbidrag")
-            am_procent = 8.0  # Standard procent
+            samlet_løn = data.get("løn", {}).get("samlet_løn_før_skat")
             
-            # Sikre at am_bidrag_beløb er et gyldigt tal
-            if isinstance(am_bidrag_beløb, str):
+            if am_bidrag_beløb and samlet_løn:
                 try:
-                    # Fjern tusindtalsseparatorer og erstat komma med punktum for decimal
-                    am_bidrag_beløb = am_bidrag_beløb.replace(".", "").replace(",", ".")
-                    am_bidrag_beløb = float(am_bidrag_beløb)
-                except ValueError:
-                    logger.warning(f"Kunne ikke konvertere am_bidrag_beløb '{am_bidrag_beløb}' til tal")
-                    am_bidrag_beløb = None
+                    if isinstance(am_bidrag_beløb, str):
+                        am_bidrag_beløb = float(am_bidrag_beløb.replace(".", "").replace(",", "."))
+                    if isinstance(samlet_løn, str):
+                        samlet_løn = float(samlet_løn.replace(".", "").replace(",", "."))
                     
-            if am_bidrag_beløb and data.get("løn", {}).get("samlet_løn_før_skat"):
-                # Forsøg at beregne procent hvis vi har både beløb og grundlag
-                try:
-                    bruttoløn = data.get("løn", {}).get("samlet_løn_før_skat")
-                    # Sikre at bruttoløn er et tal
-                    if isinstance(bruttoløn, str):
-                        bruttoløn = bruttoløn.replace(".", "").replace(",", ".")
-                        bruttoløn = float(bruttoløn)
-                    
-                    am_procent = round((am_bidrag_beløb / bruttoløn) * 100, 1) if bruttoløn else 8.0
+                    am_procent = round((am_bidrag_beløb / samlet_løn) * 100, 1)
+                    data["a_skat_og_am_bidrag"]["am_bidrag_procent"] = am_procent
                 except Exception as e:
-                    logger.warning(f"Fejl ved beregning af am_procent: {e}")
-                    am_procent = 8.0  # Brug standard hvis beregning fejler
-            
-            data["am_bidrag"] = {
-                "beløb": am_bidrag_beløb,
-                "procent": am_procent
-            }
+                    logger.warning(f"Fejl ved beregning af am_bidrag_procent: {e}")
+        
+        # Sikre at der er en særydelser-liste
+        if "særydelser" not in data:
+            data["særydelser"] = []
+            # Prøv at kopiere fra løn.særydelser hvis det eksisterer
+            if data.get("løn", {}).get("særydelser"):
+                data["særydelser"] = data["løn"]["særydelser"]
+        
+        # Sikre at der er en arbejdstimer_ics-liste
+        if "arbejdstimer_ics" not in data and data.get("arbejdstimer"):
+            data["arbejdstimer_ics"] = self._convert_to_ics_format(data["arbejdstimer"])
     
     def _convert_to_ics_format(self, arbejdstimer):
         """Konverterer arbejdstimer-array til ICS-kompatibelt format"""
@@ -492,3 +540,61 @@ OCR-tekst:
                 continue
         
         return ics_entries
+
+    def validate_extraction_completeness(self, data):
+        """
+        Validate that all required fields from the user's specification are present.
+        Logs warnings for any missing fields.
+        """
+        required_fields = {
+            "metadata": ["periode", "cpr_nr", "navn", "adresse", "arbejdsplads", "lønseddel_nr", 
+                        "tjenestenr", "anciennitetsdato", "jubilæumsdato", "næste_løntrinsstigning", 
+                        "område", "overenskomst"],
+            "løn": ["grundløn", "tillæg", "fast_løn_i_alt", "samlet_løn_før_skat", 
+                   "netto_udbetalt", "overførsel_dato"],
+            "skat": ["arbejdsmarkedsbidrag", "fradrag", "skat", "trækprocent"],
+            "a_skat_og_am_bidrag": ["a_skat_beløb", "a_skat_procent", "am_bidrag_beløb", "am_bidrag_procent"],
+            "pension": ["samlet_pensionsbidrag", "eget_bidrag", "pensionsprocent"],
+            "bruttoløn": ["beløb", "heraf_pension"],
+            "feriepenge": ["optjent", "udbetalt"],
+            "ferie": ["ferie_med_løn_saldo", "ferie_uden_løn_saldo", "6_uge", 
+                     "feriegodtgørelse_fond", "feriegodtgørelse_ekstra_tjeneste", "ferietillæg_maj"],
+            "afspadsering": ["saldo_start", "optjent_timer", "afholdt_timer", "saldo_slut"]
+        }
+        
+        # Arrays to check
+        required_arrays = ["særydelser", "arbejdstimer", "arbejdstimer_ics"]
+        
+        missing_sections = []
+        missing_fields = {}
+        
+        # Check sections
+        for section, fields in required_fields.items():
+            if section not in data:
+                missing_sections.append(section)
+                continue
+            
+            # Check fields in section
+            section_missing = []
+            for field in fields:
+                if field not in data[section] or data[section][field] is None:
+                    section_missing.append(field)
+                
+            if section_missing:
+                missing_fields[section] = section_missing
+        
+        # Check arrays
+        for array in required_arrays:
+            if array not in data or not isinstance(data[array], list):
+                missing_sections.append(array)
+        
+        # Log warnings
+        if missing_sections:
+            logger.warning(f"Manglende sektioner i lønseddeldata: {', '.join(missing_sections)}")
+        
+        for section, fields in missing_fields.items():
+            if fields:
+                logger.warning(f"Manglende felter i sektion {section}: {', '.join(fields)}")
+        
+        # Return true if all required data is present
+        return not (missing_sections or missing_fields)
