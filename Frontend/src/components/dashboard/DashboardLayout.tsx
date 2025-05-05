@@ -77,13 +77,13 @@ const DashboardLayout: React.FC = () => {
           </h1>
           <p className="text-muted-foreground">
             Velkommen til dit lønunivers
-          </p>
+                      </p>
         </div>
         
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="flex items-center">
             <Calendar className="mr-2 h-4 w-4" />
-            March 2025
+            April 2025
           </Button>
           <Button variant="outline" size="sm">
             <Download className="mr-2 h-4 w-4" />
@@ -148,7 +148,7 @@ const DashboardLayout: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-green-600 flex items-center">
-                  +2.5% fra sidste måned
+                  +.5% fra sidste måned
                 </p>
               </CardContent>
             </Card>

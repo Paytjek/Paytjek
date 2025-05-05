@@ -1,31 +1,16 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:16
-    environment:
-      - POSTGRES_USER=paytjek
-      - POSTGRES_PASSWORD=hemmelig
-      - POSTGRES_DB=paytjek_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - paytjek-network
-
   backend:
     build: ./backend
     ports:
       - "8000:8000"
-    environment:
-      - MISTRAL_API_KEY=fJc0nt0eJFQe5x5CDvM4E49LBkFQCBl4
-      - DATABASE_URL=postgresql+asyncpg://paytjek:hemmelig@db:5432/paytjek_db
-      - CORS_ORIGINS=http://localhost:8080,http://localhost:8081,http://frontend:8080
+    env_file:
+      - .env
     volumes:
       - ./backend:/app
       - ./backend/uploads:/app/uploads
     restart: unless-stopped
-    depends_on:
-      - db
     networks:
       - paytjek-network
 
@@ -34,22 +19,23 @@ services:
       context: ./Frontend
       dockerfile: Dockerfile.dev
     ports:
-      - "8081:8080"
+      - "8080:8080"
     depends_on:
       - backend
     environment:
       - VITE_API_URL=http://localhost:8000
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
+      - VITE_HMR_PORT=8080
     volumes:
-      - ./Frontend/src:/app/src:cached
-      - ./Frontend/public:/app/public:cached
-      - ./Frontend/index.html:/app/index.html:cached
-      - ./Frontend/vite.config.ts:/app/vite.config.ts:cached
-      - ./Frontend/tsconfig.json:/app/tsconfig.json:cached
-      - ./Frontend/tailwind.config.ts:/app/tailwind.config.ts:cached
-      - ./Frontend/postcss.config.js:/app/postcss.config.js:cached
-      - ./Frontend/package.json:/app/package.json:cached
+      - ./Frontend/src:/app/src
+      - ./Frontend/public:/app/public
+      - ./Frontend/index.html:/app/index.html
+      - ./Frontend/vite.config.ts:/app/vite.config.ts
+      - ./Frontend/tsconfig.json:/app/tsconfig.json
+      - ./Frontend/tailwind.config.ts:/app/tailwind.config.ts
+      - ./Frontend/postcss.config.js:/app/postcss.config.js
+      - ./Frontend/package.json:/app/package.json
     restart: unless-stopped
     networks:
       - paytjek-network

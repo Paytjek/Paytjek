@@ -1,64 +1,120 @@
 # Paytjek
 
-This project can be run using Docker and Docker Compose, which containerizes both the frontend and backend applications.
+Dette projekt kører med Docker og Docker Compose, som containeriserer både frontend og backend applikationer.
 
-## Prerequisites
+## Forudsætninger
 
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
-## Environment Variables
+## Miljøvariabler
 
-For production environment, create a `.env` file in the root directory with:
+Opret en `.env` fil i rodmappen med:
 
 ```
 DATABASE_URL=postgresql+asyncpg://username:password@host:port/database
 MISTRAL_API_KEY=your_mistral_api_key_here
 ```
 
-**Note:** Contact the team for the actual database credentials and API keys. Never commit credentials to version control.
+**Bemærk:** Kontakt teamet for de faktiske database credentials og API nøgler. Commit aldrig credentials til version control.
 
-## Building and Running for Production
+## Udviklingsmiljø
 
-To build and start the application in production mode:
+For at starte udviklingsmiljøet med hot reload og live updates:
 
 ```bash
-# Build the Docker images
-docker-compose -f docker-compose.prod.yml build
-
-# Start the containers
-docker-compose -f docker-compose.prod.yml up -d
+# Start udviklingsmiljøet
+docker-compose up --build -d
 ```
 
-The services will be available at:
+Tjenesterne vil være tilgængelige på:
 - Frontend: http://localhost:8080
 - Backend API: http://localhost:8000
 
-To stop the containers:
+### Udviklingsfunktioner
+- **Hot Reload**: Frontend ændringer opdages automatisk og opdateres i browseren
+- **Volume Mounts**: Lokale filændringer reflekteres øjeblikkeligt i containere
+- **Live Updates**: Ingen behov for at genbygge eller genstarte containere for kodeændringer
+
+### Arbejde med Udviklingsmiljøet
+
+1. **Lave Ændringer**:
+   - Rediger filer i dit lokale workspace
+   - Ændringer reflekteres automatisk i de kørende containere
+   - Frontend opdateringer vises øjeblikkeligt i browseren
+   - Backend opdateringer kræver et kort øjeblik til at genindlæse
+
+2. **Se Logs**:
+   ```bash
+   # Frontend logs
+   docker logs paytjek-frontend-1
+
+   # Backend logs
+   docker logs paytjek-backend-1
+   ```
+
+3. **Genstarte Tjenester**:
+   ```bash
+   # Genstart en specifik tjeneste
+   docker-compose restart frontend
+   docker-compose restart backend
+
+   # Fuld genbygning og genstart
+   docker-compose down && docker-compose up --build -d
+   ```
+
+## Produktions Deployment
+
+For at bygge og starte applikationen i produktionsmode:
+
+```bash
+# Byg Docker images
+docker-compose -f docker-compose.prod.yml build
+
+# Start containere
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+Tjenesterne vil være tilgængelige på:
+- Frontend: http://localhost:8080
+- Backend API: http://localhost:8000
+
+For at stoppe containere:
 
 ```bash
 docker-compose -f docker-compose.prod.yml down
 ```
 
-Check frontend changes:
-```bash
-docker-compose -f docker-compose.prod.yml build --no-cache frontend && docker-compose -f docker-compose.prod.yml up -d --force-recreate frontend
-```
+## Fejlfinding
 
-## Troubleshooting
+### Almindelige Problemer
 
-If you encounter encoding issues with environment files:
+1. **Hot Reload Virker Ikke**:
+   - Sørg for at du bruger udviklingsmiljøet (`docker-compose.yml`)
+   - Tjek at volume mounts virker korrekt
+   - Verificer at Vite kører i udviklingsmode
 
-```bash
-echo DATABASE_URL=your_database_url > .env.new
-echo MISTRAL_API_KEY=your_mistral_api_key >> .env.new
-del .env
-move .env.new .env
-```
+2. **Database Forbindelsesproblemer**:
+   - Verificer at `.env` filen indeholder korrekte database credentials
+   - Tjek at databasen er tilgængelig fra backend containeren
+   - Brug `/db-info` endpointet til at verificere forbindelsen
 
-For calendar data issues, check that:
-1. Backend is connected to the Supabase database
-2. `VITE_API_URL` in `docker-compose.prod.yml` is set to `http://localhost:8000`
-3. Calendar API endpoint returns JSON data
+3. **Filrettighedsproblemer**:
+   - Hvis du støder på rettighedsfejl, prøv:
+     ```bash
+     docker-compose down
+     docker-compose up --build -d
+     ```
 
-For database connection issues, use the `/db-info` endpoint to verify the connection.
+4. **Encoding Problemer**:
+   ```bash
+   echo DATABASE_URL=your_database_url > .env.new
+   echo MISTRAL_API_KEY=your_mistral_api_key >> .env.new
+   del .env
+   move .env.new .env
+   ```
+
+### Kalender Data Problemer
+- Sørg for at backend er forbundet til Supabase databasen
+- Verificer at `VITE_API_URL` i `docker-compose.prod.yml` er sat til `http://localhost:8000`
+- Tjek at Calendar API endpoint returnerer JSON data
