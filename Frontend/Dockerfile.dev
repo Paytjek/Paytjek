@@ -12,8 +12,12 @@ COPY package.json package-lock.json ./
 # Force reinstall with specific options to handle rollup issues
 RUN rm -rf node_modules && \
     npm install --legacy-peer-deps --no-optional && \
-    # Add explicit fix for rollup
-    npm install --legacy-peer-deps @rollup/rollup-linux-x64-musl
+    # Add explicit fix for rollup based on architecture
+    if [ "$(uname -m)" = "x86_64" ]; then \
+      npm install --legacy-peer-deps @rollup/rollup-linux-x64-musl; \
+    elif [ "$(uname -m)" = "aarch64" ]; then \
+      npm install --legacy-peer-deps @rollup/rollup-linux-arm64-musl; \
+    fi
 
 # Copy configuration files
 COPY vite.config.ts tsconfig.json tailwind.config.ts postcss.config.js ./
