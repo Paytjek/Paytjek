@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import { ProfileProvider } from "./contexts/ProfileContext";
 import UploadFlow from "./pages/UploadFlow";
 
+// Test comment for hot reload verification
 const queryClient = new QueryClient();
 
 const App = () => (

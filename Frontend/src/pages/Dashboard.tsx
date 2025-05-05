@@ -72,17 +72,17 @@ const Dashboard: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">
-              {selectedProfile ? `Hej ${getFirstName(selectedProfile.name)}` : 'Hej!'}
+              {selectedProfile ? `Velkommen tilbage, ${getFirstName(selectedProfile.name)}!` : 'Velkommen tilbage!'}
             </h1>
             <p className="text-muted-foreground">
-              Velkommen til dit lønunivers
+              Her er dit personlige lønoverblik
             </p>
           </div>
           
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="flex items-center">
               <Calendar className="mr-2 h-4 w-4" />
-              March 2025
+              Maj 2025
             </Button>
             <Button variant="outline" size="sm">
               <Download className="mr-2 h-4 w-4" />
@@ -92,17 +92,18 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Upload lønseddel sektion - ALTID synlig */}
-        <Card className="dashboard-card p-8 text-center">
+        <Card className="dashboard-card p-8 text-center bg-gradient-to-r from-blue-50 to-indigo-50">
           <CardContent>
-            <h3 className="text-lg font-semibold mb-2">{t('common.uploadPayslip')}</h3>
+            <h3 className="text-xl font-semibold mb-3">{t('common.uploadPayslip')}</h3>
             <p className="text-muted-foreground mb-4">
-              Upload din seneste lønseddel for at få en detaljeret analyse af din løn
+              Upload din seneste lønseddel for at få en detaljeret analyse og visualisering af din løn
             </p>
             <Button 
               onClick={() => navigate('/upload')} 
-              className="mx-auto mt-2"
+              className="mx-auto mt-2 bg-blue-600 hover:bg-blue-700"
+              size="lg"
             >
-              {t('common.uploadPayslip')}
+              Start Upload
             </Button>
           </CardContent>
         </Card>

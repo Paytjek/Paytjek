@@ -39,6 +39,7 @@ RUN pip install --no-cache-dir email-validator
 # Opret temp_uploads mappen
 RUN mkdir -p /app/temp_uploads
 
+# Kopier alle filer
 COPY . .
 
 # Installer Alembic (hvis ikke allerede i requirements.txt)
@@ -47,8 +48,5 @@ RUN pip install --no-cache-dir alembic
 # Sikrer at mappen er skrivbar
 RUN chmod 777 /app/temp_uploads
 
-# Opret en startup script der sikrer at DocTR kan finde PyTorch
-RUN echo '#!/bin/bash\npython -c "import torch; print(\"PyTorch version:\", torch.__version__)"\npython -c "import doctr; print(\"DocTR version:\", doctr.__version__)"\nexec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload' > /app/start.sh && chmod +x /app/start.sh
-
-# Kør startup script
-CMD ["/app/start.sh"]
+# Start script
+CMD ["sh", "-c", "echo 'Venter på at databasen er klar...' && sleep 5 && echo 'Kører database migrationer...' && cd /app && alembic upgrade head && echo 'Starter FastAPI applikationen...' && python -c 'import torch; print(\"PyTorch version:\", torch.__version__)' && python -c 'import doctr; print(\"DocTR version:\", doctr.__version__)' && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]

@@ -6,14 +6,19 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
+    host: true,
     port: 8080,
     watch: {
-      // Brug polling i Docker-miljø
       usePolling: true,
-      interval: 100,
-      // Overvåg alle filer, ikke kun de hyppigt ændrede
+      interval: 1000,
+      binaryInterval: 1000,
+      alwaysStat: true,
+      followSymlinks: true,
       disableGlobbing: false,
+    },
+    hmr: {
+      clientPort: 8080,
+      protocol: 'ws',
     },
     proxy: {
       // Proxy API requests to backend
