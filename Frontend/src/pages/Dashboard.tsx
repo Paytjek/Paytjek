@@ -13,6 +13,7 @@ import { Calendar, Download, AlertTriangle, CheckCircle } from "lucide-react";
 import WidgetGrid from "@/components/dashboard/WidgetGrid";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/contexts/ProfileContext";
+import ShiftCalendarView from "@/components/dashboard/ShiftCalendarView";
 
 interface ValidationIssue {
   field: string;
@@ -91,7 +92,17 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Upload lønseddel sektion - ALTID synlig */}
+        {/* Calendar Card */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Din vagtplan</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ShiftCalendarView />
+          </CardContent>
+        </Card>
+
+        {/* Upload lønseddel sektion */}
         <Card className="dashboard-card p-8 text-center bg-gradient-to-r from-blue-50 to-indigo-50">
           <CardContent>
             <h3 className="text-xl font-semibold mb-3">{t('common.uploadPayslip')}</h3>
@@ -108,7 +119,7 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Herunder kommer statuskort og lønseddel-data, afhængigt af om der er uploadet */}
+        {/* Validerings Status og Lønseddel Data */}
         {hasUploadedPayslip && validationResult ? (
           <>
             {/* Validerings Status Card */}
@@ -153,7 +164,7 @@ const Dashboard: React.FC = () => {
                 </CardContent>
               )}
             </Card>
-            
+
             {/* Lønseddel Data Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="dashboard-card">
@@ -217,7 +228,7 @@ const Dashboard: React.FC = () => {
             </CardContent>
           </Card>
         )}
-        
+
         <Tabs defaultValue="payslip">
           <TabsList>
             <TabsTrigger value="payslip">{t('common.currentPayslip', 'Aktuel lønseddel')}</TabsTrigger>
