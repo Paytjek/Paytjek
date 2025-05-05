@@ -3,6 +3,8 @@ import UploadSidebar from "@/components/upload/UploadSidebar";
 import UploadBottomSheet from "@/components/upload/UploadBottomSheet";
 import FileUploader from "@/components/upload/FileUploader";
 import { Check, XCircle, ChevronDown } from "lucide-react";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useProfile } from '@/contexts/ProfileContext';
 
 const steps = [
   "Upload lønseddel",
@@ -105,6 +107,100 @@ const StatusChecklist: React.FC = () => (
   </div>
 );
 
+const COLORS = ['#22c55e', '#ef4444', '#f59e42', '#2563eb'];
+const LABELS = ['Udbetalt løn', 'Skat', 'AM-bidrag', 'Pension'];
+
+const Report: React.FC = () => {
+  const { selectedProfile } = useProfile();
+  const [data, setData] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    if (selectedProfile?.user_id) {
+      const storageKey = `validationResult_${selectedProfile.user_id}`;
+      const storedResult = localStorage.getItem(storageKey);
+      if (storedResult) {
+        try {
+          const parsed = JSON.parse(storedResult);
+          setData(parsed);
+        } catch (e) {
+          setData(null);
+        }
+      }
+    }
+  }, [selectedProfile]);
+
+  if (!data || !data.payslip_data) {
+    return <div className="text-center text-gray-500">Ingen lønseddel fundet.</div>;
+  }
+
+  // Ekstraher værdier
+  const brutto = data.payslip_data.bruttoløn || 0;
+  const udbetalt = data.payslip_data.nettoløn || 0;
+  const skat = data.payslip_data.skat || 0;
+  const am = data.payslip_data.am_bidrag || 0;
+  const pension = data.payslip_data.pension || 0;
+
+  // Doughnut data
+  const chartData = [
+    { name: 'Udbetalt løn', value: udbetalt, color: COLORS[0] },
+    { name: 'Skat', value: skat, color: COLORS[1] },
+    { name: 'AM-bidrag', value: am, color: COLORS[2] },
+    { name: 'Pension', value: pension, color: COLORS[3] },
+  ];
+  const total = chartData.reduce((sum, d) => sum + d.value, 0) || 1;
+
+  return (
+    <div className="w-full max-w-3xl mx-auto mb-10">
+      <div className="text-3xl md:text-4xl font-bold text-center mb-2">
+        Udbetalt til din konto: <span className="text-green-600">{udbetalt.toLocaleString()} kr.</span>
+      </div>
+      <div className="flex flex-col md:flex-row items-center justify-center gap-8 mt-6">
+        <ResponsiveContainer width={260} height={260}>
+          <PieChart>
+            <Pie
+              data={chartData}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={70}
+              outerRadius={110}
+              paddingAngle={2}
+              label={false}
+              isAnimationActive={true}
+            >
+              {chartData.map((entry, idx) => (
+                <Cell key={`cell-${idx}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(value: number, name: string, props: any) => [
+                `${value.toLocaleString()} kr. (${((value/total)*100).toFixed(1)}%)`,
+                name
+              ]}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="flex-1">
+          <ul className="space-y-3 mb-4">
+            {chartData.map((item, idx) => (
+              <li key={item.name} className="flex items-center gap-3">
+                <span className="inline-block w-4 h-4 rounded-full" style={{background: item.color}}></span>
+                <span className="font-medium w-32 inline-block">{item.name}</span>
+                <span className="w-24 inline-block">{item.value.toLocaleString()} kr.</span>
+                <span className="text-gray-500">{((item.value/total)*100).toFixed(1)}%</span>
+              </li>
+            ))}
+          </ul>
+          <div className="text-gray-600 text-sm mt-2">
+            Skat og AM-bidrag trækkes til staten. Pension spares op. Resten får du udbetalt.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Status: React.FC<{ success: boolean; onShowReport: () => void }> = ({ success, onShowReport }) => (
   <div className="w-full">
     <div
@@ -140,14 +236,6 @@ const Status: React.FC<{ success: boolean; onShowReport: () => void }> = ({ succ
         <span className="text-green-700 font-semibold text-lg">Se den fulde rapport</span>
       </div>
     )}
-  </div>
-);
-
-const Report: React.FC = () => (
-  <div className="w-full max-w-7xl mx-auto">
-    <div className="bg-white rounded-2xl shadow p-10 text-gray-900 text-xl font-semibold text-center w-full">
-      Her kommer den fulde lønrapport (indsæt rapport-komponent her)
-    </div>
   </div>
 );
 
