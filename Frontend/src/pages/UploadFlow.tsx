@@ -266,9 +266,15 @@ const UploadFlow: React.FC = () => {
     }, 500);
   };
 
-  // Når upload er færdig, marker analysen som færdig
-  const handleUploadSuccess = () => {
-    setAnalysisDone(true);
+  // Når upload er færdig, marker analysen som færdig og vis rapporten
+  const handleUploadSuccess = (uploadId: string) => {
+    setUploadId(uploadId);  // Set the upload ID
+    setAnalysisDone(false); // Reset analysis state since we're starting a new one
+    setActiveStep(2); // Gå til status-steget
+    setTimeout(() => {
+      setShowReport(true);
+      setActiveStep(3); // Gå til rapport-steget efter en kort pause
+    }, 3000);
   };
 
   // Poll analyse status
