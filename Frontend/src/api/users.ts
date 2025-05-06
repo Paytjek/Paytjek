@@ -14,8 +14,7 @@ export async function fetchUsers(): Promise<Profile[]> {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
-      },
-      credentials: 'include'
+      }
     });
 
     if (!response.ok) {

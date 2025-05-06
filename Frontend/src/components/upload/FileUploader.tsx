@@ -7,8 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useProfile } from "@/contexts/ProfileContext";
-
-const API_URL = "http://localhost:8000"; // Ændr til den faktiske backend-URL
+import { API_URL, ENDPOINTS } from "@/config/api";
 
 interface FileUploaderProps {
   onUploadStart: () => void;
@@ -102,12 +101,12 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onUploadSuccess, onUploadSt
       
       setProgress(30);
       
-      const response = await fetch(`${API_URL}/api/v1/upload`, {
+      const response = await fetch(`${API_URL}${ENDPOINTS.UPLOAD}`, {
         method: "POST",
         body: formData,
-        credentials: 'include',
         headers: {
           'Accept': 'application/json',
+          'Origin': window.location.origin,
         }
       });
       
