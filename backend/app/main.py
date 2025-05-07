@@ -63,8 +63,8 @@ async def db_info(session: AsyncSession = Depends(get_db)):
 # ---------- App og CORS ---------- #
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
+    allow_origins=["*"],  # Allow all origins in development
+    allow_credentials=False,  # Since we're not using credentials
     allow_methods=["*"],
     allow_headers=["*"],
 )
